@@ -1,11 +1,11 @@
-from Stemmer import Stemmer
+from Stemmer import StemmerWrapper
 import pybmoore
 
 class DataScrapper():
     def __init__(self,
                  rootDir: str,
                  filenames: list[str],
-                 stemmer: Stemmer,
+                 stemmer: StemmerWrapper,
                  weatWordList: list[str]) -> None:
         self.rootDir = rootDir
         self.filenames = filenames
@@ -46,7 +46,7 @@ class DataScrapper():
             if self.evaluateWords(sentence):
                 self.sentenceList.append(sentence)
                 self.sentSerial += 1
-                self.filesIndexcList.append(self.currentFileName)
+                self.filesIndexList.append(self.currentFileName)
             prevSent = currentSent
             currentSent = nextSent
 

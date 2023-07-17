@@ -16,6 +16,9 @@ class WordDict:
         me = os.path.realpath(__file__)
         directory = os.path.dirname(me)
 
+        self.__ner_word_dict = {}
+        self.__rootword_dict = {}
+
         for word in open(os.path.join(directory, 'banglaWords/ner_static.txt'), "r"):
             word = word.replace('\n', '')
             segment = word.split(' ')
@@ -23,7 +26,7 @@ class WordDict:
             for i in word:
                 self.__ner_word_dict[i]=1
 
-        for word in open(os.path.join(directory, 'banglaWords/rootword_list.txt'), "r"):
+        for word in open(os.path.join(directory, 'banglaWords/root_word.txt'), "r"):
             word=word.replace('\n','')
             self.__rootword_dict[word]=1
 
@@ -36,9 +39,12 @@ class WordDict:
         normalizedWord = word_normalize(word)
         self.__normalizedSearchWords[word] = normalizedWord
         return normalizedWord
+    
+    def addToRootWord(self, word: str) -> None:
+        self.__rootword_dict[word] = 1
 
     def checkInVocab(self, word: str) -> bool:
-        return self.checkInRootWord(word) or self.checkIn_NER_Vocab(word)
+        return self.checkInRootWord(word) # or self.checkIn_NER_Vocab(word)
 
     def checkInRootWord(self, word: str) -> bool:
         return (word in self.__rootword_dict) or (self.__normalize(word) in self.__rootword_dict)
@@ -125,7 +131,7 @@ class RafiStemmer(StemmerCore):
     groups: List[List[str]]
     replace_rules: Dict[str, str]
 
-    def __init__(self, wordDict: WordDict, readable_rules: IO[str] = None):
+    def __init__(self, wordDict: WordDict, priorityRules: dict, readable_rules: IO[str] = None):
         if readable_rules is None:
             me = os.path.realpath(__file__)
             directory = os.path.dirname(me)
@@ -136,6 +142,7 @@ class RafiStemmer(StemmerCore):
             content = readable_rules.read()
 
         parser = RafiStemmerRuleParser(content)
+        self.priorityRules = priorityRules
         self.groups = parser.groups
         self.replace_rules = parser.replace_rules
         self.wordDict = wordDict
@@ -167,22 +174,68 @@ class RafiStemmer(StemmerCore):
 
     def stem_word(self, word: str):
         if self.wordDict.checkInVocab(word):
+            print(word)
             return word
-        
-        for group in self.groups:
+        suffix_dict = {}
+        for group_idx, group in enumerate(self.groups):
             for replace_prefix in group:
+                if re.search('.*' + replace_prefix + '$', word):
+                    suffix_dict[replace_prefix] = group_idx
 
-                if not word.endswith(replace_prefix):
+        suffix_dict = dict(sorted(suffix_dict.items(), key=lambda item: len(item[0]), reverse=True))
+        
+        for suffix, serial in suffix_dict.items():
+            if serial == self.priorityRules["replace"]:
+                index = len(word) - len(suffix)
+                new_word = self.stem_with_replace_rule(index, suffix, word)
+                if not self.wordDict.checkInVocab(new_word): # for CACHING purpose
+                    self.wordDict.addToRootWord(new_word)
+                
+                return new_word
+            elif serial in self.priorityRules["remove"]:
+                index = len(word) - len(suffix)
+                new_word = word[0:index]
+                if self.check(new_word) == False:
                     continue
-
-                index = len(word) - len(replace_prefix)
-
-                if replace_prefix in self.replace_rules:
-                    word = self.stem_with_replace_rule(index, replace_prefix, word)  # noqa: E501
-
-                elif self.check(word[0:index]):
-                    word = word[0:index]
-
-                break
+                if not self.wordDict.checkInVocab(new_word): # for CACHING purpose
+                    self.wordDict.addToRootWord(new_word)
+                
+                return new_word
+            elif serial == self.priorityRules["ambiguous"]:
+                index = len(word) - len(suffix)
+                new_word = word[0:index]
+                # print(new_word)
+                if self.check(new_word) == False:
+                    continue
+                if not self.wordDict.checkInVocab(new_word):
+                    continue
+                else:
+                    return new_word
+                # return new_word
 
         return word
+    
+
+    # if not word.endswith(replace_prefix):
+    #     continue
+
+    # index = len(word) - len(replace_prefix)
+
+    # if replace_prefix in self.replace_rules:
+    #     word = self.stem_with_replace_rule(index, replace_prefix, word)  # noqa: E501
+
+    # elif self.check(word[0:index]):
+    #     word = word[0:index]
+
+    # break
+
+if __name__ == "__main__":
+    wordDict = WordDict()
+    priorityRules = {
+        "replace": 1,
+        "remove": [0,2,3],
+        "ambiguous": 4
+    }
+
+    stemmer = RafiStemmer(wordDict, priorityRules)
+    print(stemmer.stem_word("উপলব্ধিতে"))
