@@ -20,6 +20,7 @@ class DataScrapper():
         self.sentenceList = []
         self.filesIndexList = []
         self.sentSerial = 0
+        self.currentFileName = ""
 
     def evaluateWords(self, sent:str):
         isMatchFound = False
@@ -41,10 +42,11 @@ class DataScrapper():
             if currentSent == "":
                 continue
             # check if the combination of the sentences has the word
-            if self.evaluateWords(' '.join([prevSent, currentSent, nextSent])):
-                self.sentenceList.append(' '.join([prevSent, currentSent, nextSent]))
+            sentence = ' '.join([prevSent, currentSent, nextSent])
+            if self.evaluateWords(sentence):
+                self.sentenceList.append(sentence)
                 self.sentSerial += 1
-                self.filesIndexcList.append(file.name)
+                self.filesIndexcList.append(self.currentFileName)
             prevSent = currentSent
             currentSent = nextSent
 
@@ -52,7 +54,10 @@ class DataScrapper():
         self.resetLists()
         for filename in self.filenames:
             with open(self.rootDir + "/" + filename, "r") as file:
+                self.currentFileName = filename
                 self.lookIntoFile(file)
+
+        return self.weatWordDict, self.sentenceList, self.filesIndexList
                 
 
 if __name__ == "__main__":
