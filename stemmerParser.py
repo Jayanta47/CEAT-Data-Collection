@@ -203,13 +203,13 @@ class RafiStemmer(StemmerCore):
             elif serial == self.priorityRules["ambiguous"]:
                 index = len(word) - len(suffix)
                 new_word = word[0:index]
-                print(new_word)
+                # print(new_word)
                 if self.check(new_word) == False:
                     continue
                 if not self.wordDict.checkInVocab(new_word):
                     continue
                 else:
-                    print(new_word)
+                    # print(new_word)
                     return new_word
                 # return new_word
 

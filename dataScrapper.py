@@ -27,9 +27,11 @@ class DataScrapper():
 
     def evaluateWords(self, sent:str):
         isMatchFound = False
+        
         for word in self.weatWordList:
             matches = pybmoore.search(word, sent)
-            if (len(matches) == 1):
+            if (len(matches) >= 1):
+                print(sent)
                 self.weatWordDict[word].append(self.sentSerial)
                 isMatchFound = True
         return isMatchFound
@@ -43,10 +45,11 @@ class DataScrapper():
             line = line.strip()
             nextSent = self.stemmer.stemSentence(line)
             if currentSent == "":
+                currentSent = nextSent
                 continue
             # check if the combination of the sentences has the word
             sentence = ' '.join([prevSent, currentSent, nextSent])
-            if self.evaluateWords(sentence):
+            if self.evaluateWords(currentSent):
                 self.sentenceList.append(sentence)
                 self.sentSerial += 1
                 self.filesIndexList.append(self.currentFileName)
@@ -80,8 +83,8 @@ if __name__ == "__main__":
     stemmerCore = RafiStemmer(wordDict, priorityRules)
     stemmerWrapper = StemmerRK(stemmerCore)
 
-    weatWordList = ["প্রকৃতি", "পর্যটক", "কুয়াকাটা", "বৌদ্ধ", "লালবাগ", "মোগল"]
+    weatWordList = ["প্রকৃতি", "পর্যটনলিপি", "কুয়াকাটা", "বৌদ্ধ", "লালবাগ", "কলেজ"]
 
-    dsc = DataScrapper("", filesList, stemmerWrapper, weatWordList)
+    dsc = DataScrapper(sys.argv[1], filesList, stemmerWrapper, weatWordList)
 
     print(dsc.scrapeData())
