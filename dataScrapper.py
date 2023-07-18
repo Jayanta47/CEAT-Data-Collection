@@ -1,5 +1,8 @@
-from Stemmer import StemmerWrapper
+from Stemmer import *
+from stemmerParser import RafiStemmer, WordDict
 import pybmoore
+import os 
+import sys 
 
 class DataScrapper():
     def __init__(self,
@@ -53,7 +56,7 @@ class DataScrapper():
     def scrapeData(self):
         self.resetLists()
         for filename in self.filenames:
-            with open(self.rootDir + "/" + filename, "r") as file:
+            with open(os.path.join(self.rootDir, filename), "r") as file:
                 self.currentFileName = filename
                 self.lookIntoFile(file)
 
@@ -61,4 +64,24 @@ class DataScrapper():
                 
 
 if __name__ == "__main__":
-    scp = DataScrapper("data", ["test.txt"], None, ["a", "b", "c"])
+    # scp = DataScrapper("data", ["test.txt"], None, ["a", "b", "c"])
+    filesList = []
+    for i in range(1, len(sys.argv)):
+        files = os.listdir(sys.argv[i])
+        filesList.extend(files)
+
+    wordDict = WordDict()
+    priorityRules = {
+        "replace": 1,
+        "remove": [0,2,3],
+        "ambiguous": 4
+    }
+
+    stemmerCore = RafiStemmer(wordDict, priorityRules)
+    stemmerWrapper = StemmerRK(stemmerCore)
+
+    weatWordList = ["প্রকৃতি", "পর্যটক", "কুয়াকাটা", "বৌদ্ধ", "লালবাগ", "মোগল"]
+
+    dsc = DataScrapper("", filesList, stemmerWrapper, weatWordList)
+
+    print(dsc.scrapeData())

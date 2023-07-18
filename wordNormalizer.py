@@ -21,3 +21,16 @@ def word_normalize(word):
         except:
             print("ERROR 204: Error in word normalization!!")
             return word
+        
+if __name__ == "__main__":
+    word = "কুয়াকাটা"
+    word2 = "কুয়াকাটা"
+    import codecs
+    print(word.encode("unicode_escape"))
+    encoded_word = codecs.encode(word, 'unicode_escape')
+    pattern = r"য়" # double sequence of unicode
+    import re 
+    seq = re.findall(pattern, word)
+    print(seq)
+    seq = re.findall(pattern, word2)
+    print(seq)

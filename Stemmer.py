@@ -29,4 +29,4 @@ if __name__ == "__main__":
     stemmerCore = RafiStemmer(wordDict, priorityRules)
     stemmerWrapper = StemmerRK(stemmerCore)
     
-    print(stemmerWrapper.stemSentence("সে কারণেই পর্যটকরা কুয়াকাটায় এসে প্রকৃতির নিয়মের সাথে নিজের মনকে একাকার করে"))
+    print(stemmerWrapper.stemSentence("সে কারণেই পর্যটকরা কুয়াকাটায় এসে প্রকৃতির নিয়মের সাথে নিজের মনকে একাকার করে"))

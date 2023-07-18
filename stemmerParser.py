@@ -18,11 +18,12 @@ class WordDict:
 
         self.__ner_word_dict = {}
         self.__rootword_dict = {}
-
-        for word in open(os.path.join(directory, 'banglaWords/ner_static.txt'), "r"):
+        lines = 0
+        for word in open(os.path.join(directory, 'banglaWords/ner_static_mod.txt'), "r"):
             word = word.replace('\n', '')
             segment = word.split(' ')
             word = segment[:-1]
+
             for i in word:
                 self.__ner_word_dict[i]=1
 
@@ -44,7 +45,7 @@ class WordDict:
         self.__rootword_dict[word] = 1
 
     def checkInVocab(self, word: str) -> bool:
-        return self.checkInRootWord(word) # or self.checkIn_NER_Vocab(word)
+        return self.checkInRootWord(word)  or self.checkIn_NER_Vocab(word)
 
     def checkInRootWord(self, word: str) -> bool:
         return (word in self.__rootword_dict) or (self.__normalize(word) in self.__rootword_dict)
@@ -173,8 +174,7 @@ class RafiStemmer(StemmerCore):
         return "".join(word_as_list[0:word_char_idx])
 
     def stem_word(self, word: str):
-        if self.wordDict.checkInVocab(word):
-            print(word)
+        if self.wordDict.checkInRootWord(word):
             return word
         suffix_dict = {}
         for group_idx, group in enumerate(self.groups):
@@ -183,14 +183,13 @@ class RafiStemmer(StemmerCore):
                     suffix_dict[replace_prefix] = group_idx
 
         suffix_dict = dict(sorted(suffix_dict.items(), key=lambda item: len(item[0]), reverse=True))
-        
+        # print(suffix_dict)
         for suffix, serial in suffix_dict.items():
             if serial == self.priorityRules["replace"]:
                 index = len(word) - len(suffix)
                 new_word = self.stem_with_replace_rule(index, suffix, word)
                 if not self.wordDict.checkInVocab(new_word): # for CACHING purpose
                     self.wordDict.addToRootWord(new_word)
-                
                 return new_word
             elif serial in self.priorityRules["remove"]:
                 index = len(word) - len(suffix)
@@ -204,12 +203,13 @@ class RafiStemmer(StemmerCore):
             elif serial == self.priorityRules["ambiguous"]:
                 index = len(word) - len(suffix)
                 new_word = word[0:index]
-                # print(new_word)
+                print(new_word)
                 if self.check(new_word) == False:
                     continue
                 if not self.wordDict.checkInVocab(new_word):
                     continue
                 else:
+                    print(new_word)
                     return new_word
                 # return new_word
 
@@ -239,3 +239,4 @@ if __name__ == "__main__":
 
     stemmer = RafiStemmer(wordDict, priorityRules)
     print(stemmer.stem_word("উপলব্ধিতে"))
+    print(wordDict.checkIn_NER_Vocab("কুয়াকাটা"))
