@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from stemmerParser import RafiStemmer, StemmerCore, WordDict
+from stemmerParser import *
 
 class StemmerWrapper(ABC):
     @abstractmethod
@@ -8,6 +8,9 @@ class StemmerWrapper(ABC):
 
 class StemmerRK(StemmerWrapper):
     def __init__(self, stemmerCore: StemmerCore):
+        self.stemmerCore = stemmerCore
+
+    def setStemmerCore(self, stemmerCore: StemmerCore):
         self.stemmerCore = stemmerCore
 
     def stemSentence(self, sent):
@@ -26,7 +29,12 @@ if __name__ == "__main__":
         "ambiguous": 4
     }
 
-    stemmerCore = RafiStemmer(wordDict, priorityRules)
+    stemmerCore = RafiStemmerMod(wordDict, priorityRules)
+    stemmerCore2 = RafiStemmer()
     stemmerWrapper = StemmerRK(stemmerCore)
     
-    print(stemmerWrapper.stemSentence("সে কারণেই পর্যটকরা কুয়াকাটায় এসে প্রকৃতির নিয়মের সাথে নিজের মনকে একাকার করে"))
+    print(stemmerWrapper.stemSentence("পর্যটনলিপি আজ আপনাদের সামনে তুলে ধরবে ঢাকার বুকে অবস্থিত এক ঐতিহাসিক ভবন কার্জন হল।"))
+
+    stemmerWrapper.setStemmerCore(stemmerCore2)
+
+    print(stemmerWrapper.stemSentence("পর্যটনলিপি আজ আপনাদের সামনে তুলে ধরবে ঢাকার বুকে অবস্থিত এক ঐতিহাসিক ভবন কার্জন হল।"))

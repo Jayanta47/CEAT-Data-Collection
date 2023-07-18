@@ -128,7 +128,7 @@ class RafiStemmerRuleParser:
         return self.COMMENTS.sub('', line)
 
 
-class RafiStemmer(StemmerCore):
+class RafiStemmerMod(StemmerCore):
     groups: List[List[str]]
     replace_rules: Dict[str, str]
 
@@ -184,7 +184,7 @@ class RafiStemmer(StemmerCore):
 
         suffix_dict = dict(sorted(suffix_dict.items(), key=lambda item: len(item[0]), reverse=True))
         # print(suffix_dict)
-        for suffix, serial in suffix_dict.items():
+        for k, (suffix, serial) in enumerate(suffix_dict.items()):
             if serial == self.priorityRules["replace"]:
                 index = len(word) - len(suffix)
                 new_word = self.stem_with_replace_rule(index, suffix, word)
@@ -196,9 +196,12 @@ class RafiStemmer(StemmerCore):
                 new_word = word[0:index]
                 if self.check(new_word) == False:
                     continue
-                if not self.wordDict.checkInVocab(new_word): # for CACHING purpose
-                    self.wordDict.addToRootWord(new_word)
-                
+                # if not self.wordDict.checkInVocab(new_word): # for CACHING purpose
+                #     if k == len(suffix_dict) - 1:
+                #         self.wordDict.addToRootWord(new_word)
+                #         return new_word
+                #     else:
+                #         continue
                 return new_word
             elif serial == self.priorityRules["ambiguous"]:
                 index = len(word) - len(suffix)
@@ -216,18 +219,67 @@ class RafiStemmer(StemmerCore):
         return word
     
 
-    # if not word.endswith(replace_prefix):
-    #     continue
+class RafiStemmer(StemmerCore):
+    groups: List[List[str]]
+    replace_rules: Dict[str, str]
 
-    # index = len(word) - len(replace_prefix)
+    def __init__(self, readable_rules: IO[str] = None):
+        if readable_rules is None:
+            me = os.path.realpath(__file__)
+            directory = os.path.dirname(me)
 
-    # if replace_prefix in self.replace_rules:
-    #     word = self.stem_with_replace_rule(index, replace_prefix, word)  # noqa: E501
+            with open(os.path.join(directory, 'common_main.rules'), 'rb') as f:
+                content = f.read().decode('utf-8')
+        else:
+            content = readable_rules.read()
 
-    # elif self.check(word[0:index]):
-    #     word = word[0:index]
+        parser = RafiStemmerRuleParser(content)
+        self.groups = parser.groups
+        self.replace_rules = parser.replace_rules
 
-    # break
+    def check(self, word: str):
+        word_length = 0
+
+        for c in word:
+            if c in st:
+                continue
+            word_length += 1
+
+        return word_length >= 1
+
+    def stem_with_replace_rule(self, index, replace_prefix, word):
+        replace_suffix = self.replace_rules[replace_prefix]
+        word_as_list = list(word)
+        word_char_idx, current = index, 0
+
+        while word_char_idx < index + len(replace_suffix):
+
+            if replace_suffix[current] != '.':
+                word_as_list[word_char_idx] = replace_suffix[current]
+
+            word_char_idx += 1
+            current += 1
+
+        return "".join(word_as_list[0:word_char_idx])
+
+    def stem_word(self, word: str):
+        for group in self.groups:
+            for replace_prefix in group:
+
+                if not word.endswith(replace_prefix):
+                    continue
+
+                index = len(word) - len(replace_prefix)
+
+                if replace_prefix in self.replace_rules:
+                    word = self.stem_with_replace_rule(index, replace_prefix, word)  # noqa: E501
+
+                elif self.check(word[0:index]):
+                    word = word[0:index]
+
+                break
+
+        return word
 
 if __name__ == "__main__":
     wordDict = WordDict()
@@ -237,6 +289,6 @@ if __name__ == "__main__":
         "ambiguous": 4
     }
 
-    stemmer = RafiStemmer(wordDict, priorityRules)
+    stemmer = RafiStemmerMod(wordDict, priorityRules)
     print(stemmer.stem_word("উপলব্ধিতে"))
     print(wordDict.checkIn_NER_Vocab("কুয়াকাটা"))
