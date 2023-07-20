@@ -80,7 +80,8 @@ if __name__ == "__main__":
         "ambiguous": 4
     }
 
-    stemmerCore = RafiStemmer(wordDict, priorityRules)
+    # stemmerCore = RafiStemmer(wordDict, priorityRules)
+    stemmerCore = RafiStemmer()
     stemmerWrapper = StemmerRK(stemmerCore)
 
     weatWordList = ["প্রকৃতি", "পর্যটনলিপি", "কুয়াকাটা", "বৌদ্ধ", "লালবাগ", "কলেজ"]
