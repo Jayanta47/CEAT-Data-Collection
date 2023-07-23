@@ -1,22 +1,20 @@
 from Stemmer import *
 from stemmerParser import RafiStemmer, WordDict
+from wordFinder import *
 import pybmoore
 import os 
 import sys 
 
 class DataScrapper():
     def __init__(self,
-                 rootDir: str,
                  filenames: list[str],
-                 stemmer: StemmerWrapper,
-                 weatWordList: list[str]) -> None:
+                 evaluator: WordFinder,
+                 stemmer: StemmerWrapper = None,
+                 rootDir: str = "") -> None:
         self.rootDir = rootDir
         self.filenames = filenames
         self.stemmer = stemmer
-        self.weatWordList = weatWordList
-        self.weatWordDict = {}
-        for word in weatWordList:
-            self.weatWordDict[word] = []
+        self.evaluator = evaluator 
         self.resetLists()
 
     def resetLists(self):
@@ -25,31 +23,24 @@ class DataScrapper():
         self.sentSerial = 0
         self.currentFileName = ""
 
-    def evaluateWords(self, sent:str):
-        isMatchFound = False
-        
-        for word in self.weatWordList:
-            matches = pybmoore.search(word, sent)
-            if (len(matches) >= 1):
-                print(sent)
-                self.weatWordDict[word].append(self.sentSerial)
-                isMatchFound = True
-        return isMatchFound
-            
-
     def lookIntoFile(self, file):
         currentSent = ""
         prevSent = ""
         nextSent = ""
         for line in file.readlines():
             line = line.strip()
-            nextSent = self.stemmer.stemSentence(line)
+            if self.stemmer:
+                nextSent = self.stemmer.stemSentence(line)
+            else:
+                nextSent = line
             if currentSent == "":
                 currentSent = nextSent
                 continue
-            # check if the combination of the sentences has the word
-            sentence = ' '.join([prevSent, currentSent, nextSent])
-            if self.evaluateWords(currentSent):
+            
+            # check if the word matches pattern in the sentence
+            
+            if self.evaluator.evaluate(currentSent, self.sentSerial):
+                sentence = ' '.join([prevSent, currentSent, nextSent])
                 self.sentenceList.append(sentence)
                 self.sentSerial += 1
                 self.filesIndexList.append(self.currentFileName)
@@ -63,29 +54,39 @@ class DataScrapper():
                 self.currentFileName = filename
                 self.lookIntoFile(file)
 
-        return self.weatWordDict, self.sentenceList, self.filesIndexList
+        return self.evaluator.getWeatWordDict(), self.sentenceList, self.filesIndexList
                 
 
 if __name__ == "__main__":
     # scp = DataScrapper("data", ["test.txt"], None, ["a", "b", "c"])
+    def get_all_files(directory):
+        all_files = []
+        for root, _, files in os.walk(directory):
+            for file in files:
+                file_path = os.path.join(root, file)
+                all_files.append(file_path)
+        return all_files
+    
     filesList = []
     for i in range(1, len(sys.argv)):
-        files = os.listdir(sys.argv[i])
+        files = get_all_files(sys.argv[i])
         filesList.extend(files)
 
-    wordDict = WordDict()
-    priorityRules = {
-        "replace": 1,
-        "remove": [0,2,3],
-        "ambiguous": 4
-    }
+    print(filesList)
 
-    # stemmerCore = RafiStemmer(wordDict, priorityRules)
+    # wordDict = WordDict()
+    # priorityRules = {
+    #     "replace": 1,
+    #     "remove": [0,2,3],
+    #     "ambiguous": 4
+    # }
+
+    # # stemmerCore = RafiStemmer(wordDict, priorityRules)
     stemmerCore = RafiStemmer()
     stemmerWrapper = StemmerRK(stemmerCore)
 
-    weatWordList = ["প্রকৃতি", "পর্যটনলিপি", "কুয়াকাটা", "বৌদ্ধ", "লালবাগ", "কলেজ"]
+    weatWordList = ["প্রকৃতি", "পর্যটনলিপি", "কুয়াকাটা", "বৌদ্ধ", "লালবাগ", "কলেজ"]  # কুয়াকাটা
 
-    dsc = DataScrapper(sys.argv[1], filesList, stemmerWrapper, weatWordList)
+    dsc = DataScrapper(filesList, stemmerWrapper, weatWordList)
 
     print(dsc.scrapeData())
