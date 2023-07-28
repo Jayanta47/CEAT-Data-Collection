@@ -3,3 +3,4 @@ allWeatWords.txt
 *.csv
 possibleSuffix.txt
 *.jsonl
+[0-9]*.txt
