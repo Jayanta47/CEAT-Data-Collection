@@ -137,7 +137,7 @@ class RafiStemmerMod(StemmerCore):
             me = os.path.realpath(__file__)
             directory = os.path.dirname(me)
 
-            with open(os.path.join(directory, 'common.rules'), 'rb') as f:
+            with open(os.path.join(directory, './StemmingRules/common.rules'), 'rb') as f:
                 content = f.read().decode('utf-8')
         else:
             content = readable_rules.read()

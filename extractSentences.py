@@ -20,8 +20,8 @@ def getSuffixList(filepath):
         return [w.rstrip(', ') for w in file.read().split("\n")]
 
 if __name__ == "__main__":
-    weatWordList = getWeatWords("allWeatWords.txt")
-    suffixList = getSuffixList("possibleSuffix.txt")
+    weatWordList = getWeatWords("./WeatWords/allWeatWords.txt")
+    # suffixList = getSuffixList("possibleSuffix.txt")
 
     filesList = []
     dir = False
