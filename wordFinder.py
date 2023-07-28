@@ -67,3 +67,23 @@ class WordEvaluatorRegexSuffix(WordFinder):
                 isMatchFound = True
                 self.weatWordDict[word].append(serial)
         return isMatchFound
+    
+
+class WordEvaluatorRegexSuffixFixed(WordFinder):
+    def __init__(self, weatWordDict: dict[str, list[str]]):
+        super().__init__(weatWordDict.keys())
+        self.weatWordPatterns = {}
+        end_characters = r' ,।:@;\'\"!#\$%\^&\~\-\+\?><\(\)'
+        for word in weatWordDict:
+            suffixString = '|'.join(weatWordDict[word])
+            self.weatWordPatterns[word] = r'\b' + re.escape(word) + f"(?:{suffixString})?" + r'[' + re.escape(end_characters) + r']'
+
+    def evaluate(self, sent: str, serial: int) -> bool:
+        isMatchFound = False
+        for word in self.weatWordList:
+            pattern = self.weatWordPatterns[word]
+            matches = re.match(pattern, sent)
+            if matches:
+                isMatchFound = True
+                self.weatWordDict[word].append(serial)
+        return isMatchFound

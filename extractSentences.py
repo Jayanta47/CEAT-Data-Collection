@@ -23,15 +23,26 @@ if __name__ == "__main__":
     suffixList = getSuffixList("possibleSuffix.txt")
 
     filesList = []
-    for i in range(1, len(sys.argv)):
-        files = get_all_files(sys.argv[i])
-        filesList.extend(files)
+    if sys.argv[1] == "-f":
+        filesList = sys.argv[2:]
+    elif sys.argv[1] == "-dir":
+        for i in range(2, len(sys.argv)):
+            files = get_all_files(sys.argv[i])
+            filesList.extend(files)
+    else:
+        print("Invalid argument")
+        exit(1)
 
-    stemmerCore = RafiStemmer()
-    stemmerWrapper = StemmerRK(stemmerCore)
+    # stemmerCore = RafiStemmer()
+    # stemmerWrapper = StemmerRK(stemmerCore)
 
     # scrapper = DataScrapper(filesList, stemmerWrapper, weatWordList)
-    evaluator = WordEvaluatorRegex(weatWordList)
+    # evaluator = WordEvaluatorRegexSuffix(weatWordList, suffixList)
+    import json
+
+    weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
+    weatWordList = list(weatWordDict.keys())
+    evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
     scrapper = DataScrapper(filesList, evaluator=evaluator)
 
     weatWordDict, sentenceList, filesIndexList = scrapper.scrapeData()
