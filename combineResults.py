@@ -77,6 +77,10 @@ directory_path = "./"
 file_name = "sentences.csv"
 folders_with_file = findResultFolders(directory_path, file_name)
 
+print("The follwing folders are being combined:")
+for folder in folders_with_file:
+    print(folder)
+
 for folder in tqdm(folders_with_file, desc="Processing"):
     sentences_file = os.path.join(folder, "sentences.csv")
     weatWords_file = os.path.join(folder, "weatWordsSentences.csv")
