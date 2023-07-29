@@ -4,6 +4,7 @@ from wordFinder import *
 import pybmoore
 import os 
 import sys 
+from tqdm import tqdm
 
 class DataScrapper():
     def __init__(self,
@@ -49,7 +50,7 @@ class DataScrapper():
 
     def scrapeData(self):
         self.resetLists()
-        for filename in self.filenames:
+        for filename in tqdm(self.filenames, desc="Scraping data"):
             with open(os.path.join(self.rootDir, filename), "r") as file:
                 self.currentFileName = filename
                 self.lookIntoFile(file)

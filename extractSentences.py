@@ -21,7 +21,6 @@ def getSuffixList(filepath):
 
 if __name__ == "__main__":
     weatWordList = getWeatWords("./WeatWords/allWeatWords.txt")
-    # suffixList = getSuffixList("possibleSuffix.txt")
 
     filesList = []
     dir = False
