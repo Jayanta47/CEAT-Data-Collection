@@ -24,7 +24,11 @@ def normalizeWeatDict(weatWordDict):
     newWeatWordDict = {}
     for word in weatWordDict:
         normalizedWord = normalize(word, unicode_norm="NFKC",  apply_unicode_norm_last=True)
-        newWeatWordDict[normalizedWord] = weatWordDict[word]
+        newList = []
+        for suffix in weatWordDict[word]:
+            normalizedSuffix = normalize(suffix, unicode_norm="NFKC",  apply_unicode_norm_last=True)
+            newList.append(normalizedSuffix)
+        newWeatWordDict[normalizedWord] = newList
     return newWeatWordDict
 
 if __name__ == "__main__":
