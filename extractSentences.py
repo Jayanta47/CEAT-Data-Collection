@@ -2,6 +2,7 @@ from dataScrapper import *
 import pandas as pd
 from wordFinder import *
 import json
+from normalizer import normalize
 
 def get_all_files(directory):
     all_files = []
@@ -18,9 +19,16 @@ def getWeatWords(filepath):
 def getSuffixList(filepath):
     with open(filepath, "r") as file:
         return [w.rstrip(', ') for w in file.read().split("\n")]
+    
+def normalizeWeatDict(weatWordDict):
+    newWeatWordDict = {}
+    for word in weatWordDict:
+        normalizedWord = normalize(word, unicode_norm="NFKC",  apply_unicode_norm_last=True)
+        newWeatWordDict[normalizedWord] = weatWordDict[word]
+    return newWeatWordDict
 
 if __name__ == "__main__":
-    weatWordList = getWeatWords("./WeatWords/allWeatWords.txt")
+    # weatWordList = getWeatWords("./WeatWords/allWeatWords.txt")
 
     filesList = []
     dir = False
@@ -36,6 +44,7 @@ if __name__ == "__main__":
         exit(1)
 
     weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
+    weatWordDict = normalizeWeatDict(weatWordDict)
     weatWordList = list(weatWordDict.keys())
     evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
     scrapper = DataScrapper(filesList, evaluator=evaluator)
