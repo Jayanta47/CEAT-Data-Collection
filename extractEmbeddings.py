@@ -120,3 +120,5 @@ if __name__ == "__main__":
     print(processor.shortenSentence(sent3, "গোলাপ"))
     print(processor.shortenSentence(sent4, "গোলাপ"))
     print(processor.shortenSentence(sent5, "গোলাপ"))
+
+    
