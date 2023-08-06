@@ -28,7 +28,7 @@ class DataScrapper():
         currentSent = ""
         prevSent = ""
         nextSent = ""
-        for line in file.readlines():
+        for line in tqdm(file.readlines(),  desc="Scraping data"):
             line = line.strip()
             if self.stemmer:
                 nextSent = self.stemmer.stemSentence(line)
@@ -50,7 +50,7 @@ class DataScrapper():
 
     def scrapeData(self):
         self.resetLists()
-        for filename in tqdm(self.filenames, desc="Scraping data"):
+        for filename in self.filenames:
             with open(os.path.join(self.rootDir, filename), "r") as file:
                 self.currentFileName = filename
                 self.lookIntoFile(file)
