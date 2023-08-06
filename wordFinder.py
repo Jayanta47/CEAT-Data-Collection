@@ -16,6 +16,10 @@ class WordFinder(ABC):
     def evaluate(self, sent: str, serial: int) -> bool:
         pass
 
+    @abstractmethod
+    def getIndex(self, ) -> list[int]:
+        pass
+
 class WordEvaluatorBMoore(WordFinder):
     def __init__(self, weatWordList: list[str]):
         super().__init__(weatWordList)
@@ -87,3 +91,15 @@ class WordEvaluatorRegexSuffixFixed(WordFinder):
                 isMatchFound = True
                 self.weatWordDict[word].append(serial)
         return isMatchFound
+    
+    # care must be taken that the keyword passed is normalized
+    def getIndex(self, sentence, keyWord) -> list[int]:
+        pattern = self.weatWordPatterns[keyWord]
+        # print(re.search(pattern, sentence).start())
+        indices = []
+        for i, word in enumerate(sentence.split()):
+            
+            if re.match(pattern, word) or re.match(pattern, word + " "):
+                # print(word) 
+                indices.append(i)
+        return indices
