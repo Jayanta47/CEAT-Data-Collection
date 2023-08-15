@@ -99,12 +99,23 @@ if __name__ == "__main__":
     sent4 = "গোলাপের রাজ্য"
     sent5 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের। রাজ্য"
 
-    print(processor.shortenSentence(sent1, "গোলাপ"))
-    print(processor.shortenSentence(sent2, "গোলাপ"))
-    print(processor.shortenSentence(sent3, "গোলাপ"))
-    print(processor.shortenSentence(sent4, "গোলাপ"))
-    print(processor.shortenSentence(sent5, "গোলাপ"))
-
-    print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
-
     
+    short_sent_1 = processor.shortenSentence(sent1, "গোলাপ")[0]
+    short_sent_2 = processor.shortenSentence(sent2, "গোলাপ")[0]
+    short_sent_3 = processor.shortenSentence(sent3, "গোলাপ")[0]
+    short_sent_4 = processor.shortenSentence(sent4, "গোলাপ")[0]
+    short_sent_5 = processor.shortenSentence(sent5, "গোলাপ")[0]
+
+    print(short_sent_1, evaluator.getSpan(short_sent_1, "গোলাপ"))
+    print(short_sent_2, evaluator.getSpan(short_sent_2, "গোলাপ"))
+    print(short_sent_3, evaluator.getSpan(short_sent_3, "গোলাপ"))
+    print(short_sent_4, evaluator.getSpan(short_sent_4, "গোলাপ"))
+    print(short_sent_5, evaluator.getSpan(short_sent_5, "গোলাপ"))
+
+    # print(processor.shortenSentence(sent1, "গোলাপ"))
+    # print(processor.shortenSentence(sent2, "গোলাপ"))
+    # print(processor.shortenSentence(sent3, "গোলাপ"))
+    # print(processor.shortenSentence(sent4, "গোলাপ"))
+    # print(processor.shortenSentence(sent5, "গোলাপ"))
+
+    # print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
