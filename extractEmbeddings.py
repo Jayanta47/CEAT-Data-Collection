@@ -2,12 +2,11 @@ from wordFinder import *
 import json
 from extractSentences import normalizeWeatDict
 from Stemmer import *
-from abc import ABC, abstractmethod
 import numpy as np
 import random
 from tqdm import tqdm
 import pickle
-from normalizer import normalize
+from models import ModelWrapper
 
 # weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
 # weatWordDict = normalizeWeatDict(weatWordDict)
@@ -61,10 +60,7 @@ class SentenceProcessor():
             newSentence = self.stemmer.stemSentence(newSentence)
         return newSentence, modifiedIndex 
     
-class ModelWrapper(ABC):
-    @abstractmethod
-    def getWordVector(self, word: str, sent: str, index: int) -> np.array:
-        pass
+
 
 class EmbeddingExtractor():
     def __init__(self, 
@@ -87,19 +83,7 @@ class EmbeddingExtractor():
         return weatWordEmbeddings
 
 
-class BanglaBertEmbeddingExtractor(ModelWrapper):
-    def __init__(self, model, tokenizer) -> None:
-        self.model = model
-        self.tokenizer = tokenizer #add_special_tokens=False
 
-    def getWordVector(self, word: str, sent: str, index: int) -> np.array:
-        normalized_sentence = normalize(sent) # no additional params needed?
-        input_tokens = self.tokenizer.encode(normalized_sentence, add_special_tokens=False, return_tensors="pt")
-        if torch.cuda.is_available():
-            input_tokens = input_tokens.to('cuda')
-        with torch.no_grad():
-            output = self.model(**input_tokens)
-            return output[1][24][0].detach().cpu().numpy()[index]
 
 if __name__ == "__main__":
     weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
@@ -120,5 +104,7 @@ if __name__ == "__main__":
     print(processor.shortenSentence(sent3, "গোলাপ"))
     print(processor.shortenSentence(sent4, "গোলাপ"))
     print(processor.shortenSentence(sent5, "গোলাপ"))
+
+    print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
 
     
