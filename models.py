@@ -31,12 +31,19 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
                 break
         assert len(indices) > 0
         return indices
-    
+
     def prepareEmbedding(self, output, tokenIndices, averagePooling=True):
         if averagePooling:
-            return np.mean(output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0)
+            return np.mean(
+                output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0
+            )
+        else:
+            # return the max pooling
+            return np.max(output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0)
 
-    def getWordVector(self, word: str, sent: str, index: int, span: list[int]) -> np.array:
+    def getWordVector(
+        self, word: str, sent: str, index: int, span: list[int]
+    ) -> np.array:
         normalized_sentence = normalize(sent)  # no additional params needed?
 
         input_tokens = self.tokenizer.encode(normalized_sentence, return_tensors="pt")
@@ -54,3 +61,18 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
             output = self.model(**input_tokens)
 
             return self.prepareEmbedding(output, token_indices)
+
+
+if __name__ == "__main__":
+    model = BanglaBertEmbeddingExtractor(
+        model_name="csebuetnlp/banglabert_large",
+        tokenizer_name="csebuetnlp/banglabert_large",
+    )
+
+    sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
+    sent2 = "যথাযথ কর্তৃপক্ষের উচিত এই সকল নিদর্শনসমুহের নিয়মিত পরিচর্যা করা, নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপ রাজ্য (ভ্রমণ কাহিনী) অভিজিৎ সাগর A rose for my rose.......এটার বদলে যদি বলি a kingdom of rose for my beautiful rose ? কেমন হবে বলুন তো?- যা হবে তা ভাবনাতেই থাকুক।"
+    sent3 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের রাজ্য"
+    sent4 = "গোলাপের রাজ্য"
+    sent5 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের। রাজ্য"
+
+    print(model.getWordVector("গোলাপের", sent1, 0, [0, 0]))
