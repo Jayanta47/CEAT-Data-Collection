@@ -34,6 +34,7 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
 
     def prepareEmbedding(self, output, tokenIndices, averagePooling=True):
         if averagePooling:
+            # return average pooling
             return np.mean(
                 output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0
             )

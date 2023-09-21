@@ -19,15 +19,18 @@ from models import ModelWrapper, BanglaBertEmbeddingExtractor
 
 # print(sentence.split()[indices[0]])
 
-def getSentencesSample(sentenceList, maxItems = 1000):
+
+def getSentencesSample(sentenceList, maxItems=1000):
     numItems = min(maxItems, len(sentenceList))
-    items = sentenceList if numItems < maxItems else random.sample(sentenceList, maxItems)
+    items = (
+        sentenceList if numItems < maxItems else random.sample(sentenceList, maxItems)
+    )
     return items
 
-class SentenceProcessor():
-    def __init__(self, evaluator: WordFinder, 
-                 stemmer: StemmerWrapper = None) -> None:
-        self.evaluator = evaluator 
+
+class SentenceProcessor:
+    def __init__(self, evaluator: WordFinder, stemmer: StemmerWrapper = None) -> None:
+        self.evaluator = evaluator
         self.stemmer = stemmer
 
     def setLength(self, length: int) -> None:
@@ -37,64 +40,64 @@ class SentenceProcessor():
         indices = self.evaluator.getIndex(sentence, word)
         if len(indices) == 0:
             raise Exception("No match found")
-        
+
         index = indices[0]
         if self.length == -1:
             return sentence, index
         words = sentence.split()
         modifiedIndex = index
         if len(words) >= self.length:
-            if index < self.length//2:
-                wordsUsed = words[:self.length]
-            elif (len(words) - index) < self.length//2 + 1:
-                wordsUsed = words[-self.length:]
+            if index < self.length // 2:
+                wordsUsed = words[: self.length]
+            elif (len(words) - index) < self.length // 2 + 1:
+                wordsUsed = words[-self.length :]
                 modifiedIndex = self.length - (len(words) - index)
             else:
-                wordsUsed = words[index - self.length//2: index + self.length//2]
-                modifiedIndex = self.length//2
-            newSentence = ' '.join(wordsUsed)
+                wordsUsed = words[index - self.length // 2 : index + self.length // 2]
+                modifiedIndex = self.length // 2
+            newSentence = " ".join(wordsUsed)
         else:
-            newSentence = sentence 
+            newSentence = sentence
 
         if self.stemmer:
             newSentence = self.stemmer.stemSentence(newSentence)
-        return newSentence, modifiedIndex 
-    
+        return newSentence, modifiedIndex
 
 
-class EmbeddingExtractor():
-    def __init__(self, 
-                 sentenceProcessor: SentenceProcessor,
-                 model: ModelWrapper) -> None:
+class EmbeddingExtractor:
+    def __init__(
+        self, sentenceProcessor: SentenceProcessor, model: ModelWrapper
+    ) -> None:
         self.sentenceProcessor = sentenceProcessor
         self.model = model
 
     def savePickle(self, filename: str, data: dict[str, list[np.array]]):
         pickle.dump(data, open(filename, "wb"))
 
-    def extract(self, weatWordDict: dict[str, list[str]]) -> dict[str, list[np.array]]:
+    def extract(self, weatWordSentenceDict: dict[str, list[str]]) -> dict[str, list[np.array]]:
         weatWordEmbeddings = {}
 
-        for word in weatWordDict:
-            for index, sentence in tqdm(enumerate(weatWordDict[word]), desc="Processing Sentences"):
+        for word in weatWordSentenceDict:
+            for index, sentence in tqdm(
+                enumerate(weatWordSentenceDict[word]), desc="Processing Sentences"
+            ):
                 sentence, index = self.sentenceProcessor.shortenSentence(sentence, word)
-                weatWordEmbeddings[word].append(self.model.getWordVector(word, sentence, index))
-
+                weatWordEmbeddings[word].append(
+                    self.model.getWordVector(word, sentence, index)
+                )
         return weatWordEmbeddings
 
 
-
-
 if __name__ == "__main__":
-    weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
+    weatWordDict = json.load(open("weatWordsWithSuffix.jsonl", "r", encoding="utf-8"))
     weatWordDict = normalizeWeatDict(weatWordDict)
     evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
     processor = SentenceProcessor(evaluator)
     processor.setLength(9)
 
     model = BanglaBertEmbeddingExtractor(
-        model_name = "csebuetnlp/banglabert_large",
-        tokenizer_name = "csebuetnlp/banglabert_large",
+        model_name="csebuetnlp/banglabert_large",
+        tokenizer_name="csebuetnlp/banglabert_large",
     )
 
     extractor = EmbeddingExtractor(processor, model)
@@ -106,7 +109,6 @@ if __name__ == "__main__":
     sent4 = "গোলাপের রাজ্য"
     sent5 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের। রাজ্য"
 
-    
     short_sent_1 = processor.shortenSentence(sent1, "গোলাপ")[0]
     short_sent_2 = processor.shortenSentence(sent2, "গোলাপ")[0]
     short_sent_3 = processor.shortenSentence(sent3, "গোলাপ")[0]
@@ -126,3 +128,5 @@ if __name__ == "__main__":
     # print(processor.shortenSentence(sent5, "গোলাপ"))
 
     # print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
+
+    extractor.extract(weatWordDict)

@@ -1,8 +1,9 @@
-from dataScrapper import * 
+from dataScrapper import *
 import pandas as pd
 from wordFinder import *
 import json
 from normalizer import normalize
+
 
 def get_all_files(directory):
     all_files = []
@@ -12,24 +13,32 @@ def get_all_files(directory):
             all_files.append(file_path)
     return all_files
 
+
 def getWeatWords(filepath):
     with open(filepath, "r") as file:
-        return [w.rstrip(', ') for w in file.read().split("\n")]
+        return [w.rstrip(", ") for w in file.read().split("\n")]
+
 
 def getSuffixList(filepath):
     with open(filepath, "r") as file:
-        return [w.rstrip(', ') for w in file.read().split("\n")]
-    
+        return [w.rstrip(", ") for w in file.read().split("\n")]
+
+
 def normalizeWeatDict(weatWordDict):
     newWeatWordDict = {}
     for word in weatWordDict:
-        normalizedWord = normalize(word, unicode_norm="NFKC",  apply_unicode_norm_last=True)
+        normalizedWord = normalize(
+            word, unicode_norm="NFKC", apply_unicode_norm_last=True
+        )
         newList = []
         for suffix in weatWordDict[word]:
-            normalizedSuffix = normalize(suffix, unicode_norm="NFKC",  apply_unicode_norm_last=True)
+            normalizedSuffix = normalize(
+                suffix, unicode_norm="NFKC", apply_unicode_norm_last=True
+            )
             newList.append(normalizedSuffix)
         newWeatWordDict[normalizedWord] = newList
     return newWeatWordDict
+
 
 if __name__ == "__main__":
     # weatWordList = getWeatWords("./WeatWords/allWeatWords.txt")
@@ -47,7 +56,7 @@ if __name__ == "__main__":
         print("Invalid argument")
         exit(1)
 
-    weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
+    weatWordDict = json.load(open("weatWordsWithSuffix.jsonl", "r", encoding="utf-8"))
     weatWordDict = normalizeWeatDict(weatWordDict)
     weatWordList = list(weatWordDict.keys())
     evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
@@ -55,29 +64,37 @@ if __name__ == "__main__":
 
     weatWordDict, sentenceList, filesIndexList = scrapper.scrapeData()
 
-    saveData = {
-        "WEAT word": [],
-        "Sentences": []
-    }
+    saveData = {"WEAT word": [], "Sentences": []}
     for word in weatWordList:
         values = weatWordDict[word]
-        value_str = '-'.join(str(i) for i in values)
+        value_str = "-".join(str(i) for i in values)
         saveData["WEAT word"].append(word)
         saveData["Sentences"].append(value_str)
     saveData["Index"] = range(len(weatWordList))
     weatWordDF = pd.DataFrame(saveData)
 
     if dir:
-        sentencesDF = pd.DataFrame({"Index": range(len(sentenceList)), "Sentence": sentenceList, "SourceFile": filesIndexList})
+        sentencesDF = pd.DataFrame(
+            {
+                "Index": range(len(sentenceList)),
+                "Sentence": sentenceList,
+                "SourceFile": filesIndexList,
+            }
+        )
     else:
-        sentencesDF = pd.DataFrame({"Index": range(len(sentenceList)), "Sentence": sentenceList})
-    
+        sentencesDF = pd.DataFrame(
+            {"Index": range(len(sentenceList)), "Sentence": sentenceList}
+        )
+
     if dir:
         weatWordDF.to_csv("weatWordsSentences.csv", index=False)
         sentencesDF.to_csv("sentences.csv", index=False)
     else:
         import os
-        folderName = "_".join([fileName.split("/")[-1].split(".")[0] for fileName in filesList])
+
+        folderName = "_".join(
+            [fileName.split("/")[-1].split(".")[0] for fileName in filesList]
+        )
         print(folderName)
         os.makedirs("./" + folderName, exist_ok=True)
         weatWordDF.to_csv(f"./{folderName}/weatWordsSentences.csv", index=False)

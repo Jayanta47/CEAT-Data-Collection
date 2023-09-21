@@ -1,7 +1,6 @@
 __pycache__/
 allWeatWords.txt
 *.csv
-*.jsonl
 [0-9]*.txt
 results/*
 .vscode/

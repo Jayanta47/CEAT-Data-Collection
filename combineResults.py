@@ -3,7 +3,7 @@ import pandas as pd
 import pickle
 from tqdm import tqdm
 import time
-import re 
+import re
 
 
 def findResultFolders(directoryPath, searchFilename):
@@ -24,6 +24,7 @@ def create_word_sentence_dict(sentences_file, words_file):
     # Create an empty dictionary to store the word-sentence mapping
     word_sentence_dict = {}
 
+    # initialize the dictionary with the words from words_df
     for _, row in words_df.iterrows():
         word = row["WEAT word"]
         word_sentence_dict[word] = list()
@@ -71,22 +72,25 @@ def generate_results(weat_word_dict, dump_reuslts=True):
     if dump_reuslts:
         pickle.dump(weat_word_dict, open("results/results.pkl", "wb"))
 
-def merge_same_words(word_sentence_dict: dict[str, list[str]], same_words_dict: dict[str, list[str]]) -> dict[str, list[str]]:
-    '''
+
+def merge_same_words(
+    word_sentence_dict: dict[str, list[str]], same_words_dict: dict[str, list[str]]
+) -> dict[str, list[str]]:
+    """
     For the words in same_words_dict, merge the sentences in word_sentence_dict
     Substitute the words in the common words list with the master word
-    '''
+    """
     for masterWord, value in same_words_dict.items():
         new_list = []
         for word in value:
-            if (word in word_sentence_dict):
+            if word in word_sentence_dict:
                 old_list = word_sentence_dict[word]
                 for sent in old_list:
                     new_sent = re.sub(word, masterWord, sent)
                     new_list.append(new_sent)
         word_sentence_dict[masterWord].extend(new_list)
     return word_sentence_dict
-        
+
 
 word_sentence_dict = {}
 
