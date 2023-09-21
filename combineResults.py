@@ -88,6 +88,7 @@ def merge_same_words(
                 for sent in old_list:
                     new_sent = re.sub(word, masterWord, sent)
                     new_list.append(new_sent)
+                word_sentence_dict.pop(word)
         word_sentence_dict[masterWord].extend(new_list)
     return word_sentence_dict
 
@@ -118,6 +119,8 @@ same_words_dict = {
     "বারুদ": ["গোলাবারুদ"],
     "বেলি": ["বেলী"],
     "উইপোকা": ["উঁইপোকা"],
+    "বীজগণিত": ["অ্যালজেবরা"],
+    "পিঁপড়া": ["পিঁপড়ে"],
 }
 word_sentence_dict = merge_same_words(word_sentence_dict, same_words_dict)
 generate_results(word_sentence_dict)

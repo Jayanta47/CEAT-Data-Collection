@@ -74,7 +74,9 @@ class EmbeddingExtractor:
     def savePickle(self, filename: str, data: dict[str, list[np.array]]):
         pickle.dump(data, open(filename, "wb"))
 
-    def extract(self, weatWordSentenceDict: dict[str, list[str]]) -> dict[str, list[np.array]]:
+    def extract(
+        self, weatWordSentenceDict: dict[str, list[str]]
+    ) -> dict[str, list[np.array]]:
         weatWordEmbeddings = {}
 
         for word in weatWordSentenceDict:
@@ -95,12 +97,12 @@ if __name__ == "__main__":
     processor = SentenceProcessor(evaluator)
     processor.setLength(9)
 
-    model = BanglaBertEmbeddingExtractor(
-        model_name="csebuetnlp/banglabert_large",
-        tokenizer_name="csebuetnlp/banglabert_large",
-    )
+    # model = BanglaBertEmbeddingExtractor(
+    #     model_name="csebuetnlp/banglabert_large",
+    #     tokenizer_name="csebuetnlp/banglabert_large",
+    # )
 
-    extractor = EmbeddingExtractor(processor, model)
+    # extractor = EmbeddingExtractor(processor, model)
 
     # test index
     sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
@@ -129,4 +131,9 @@ if __name__ == "__main__":
 
     # print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
 
-    extractor.extract(weatWordDict)
+    # load the pickle file
+    weatWordSentenceDict = pickle.load(open("./results/results.pkl", "rb"))
+    for word in weatWordSentenceDict:
+        print(word)
+
+    # extractor.extract(weatWordDict)
