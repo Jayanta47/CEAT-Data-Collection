@@ -63,6 +63,9 @@ class SentenceProcessor:
             newSentence = self.stemmer.stemSentence(newSentence)
         return newSentence, modifiedIndex
 
+    def getSpan(self, sentence: str, word: str, index: int) -> list[int]:
+        return self.evaluator.getSpanByIndex(sentence, word, index)
+
 
 class EmbeddingExtractor:
     def __init__(
@@ -80,13 +83,21 @@ class EmbeddingExtractor:
         weatWordEmbeddings = {}
 
         for word in weatWordSentenceDict:
+            weatWordEmbeddings[word] = []
+
+        for word in weatWordSentenceDict:
             for index, sentence in tqdm(
                 enumerate(weatWordSentenceDict[word]), desc="Processing Sentences"
             ):
                 sentence, index = self.sentenceProcessor.shortenSentence(sentence, word)
-                weatWordEmbeddings[word].append(
-                    self.model.getWordVector(word, sentence, index)
-                )
+                span = self.sentenceProcessor.getSpan(sentence, word, index)
+                try:
+                    weatWordEmbeddings[word].append(
+                        self.model.getWordVector(word, sentence, index, span)
+                    )
+                except:
+                    print("Error with: ", sentence)
+
         return weatWordEmbeddings
 
 
@@ -97,12 +108,12 @@ if __name__ == "__main__":
     processor = SentenceProcessor(evaluator)
     processor.setLength(9)
 
-    # model = BanglaBertEmbeddingExtractor(
-    #     model_name="csebuetnlp/banglabert_large",
-    #     tokenizer_name="csebuetnlp/banglabert_large",
-    # )
+    model = BanglaBertEmbeddingExtractor(
+        model_name="csebuetnlp/banglabert_large",
+        tokenizer_name="csebuetnlp/banglabert_large",
+    )
 
-    # extractor = EmbeddingExtractor(processor, model)
+    extractor = EmbeddingExtractor(processor, model)
 
     # test index
     sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
@@ -133,7 +144,5 @@ if __name__ == "__main__":
 
     # load the pickle file
     weatWordSentenceDict = pickle.load(open("./results/results.pkl", "rb"))
-    for word in weatWordSentenceDict:
-        print(word)
 
     # extractor.extract(weatWordDict)

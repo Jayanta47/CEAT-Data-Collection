@@ -26,6 +26,10 @@ class WordFinder(ABC):
     def getSpan(self, sent: str, keyWord: str) -> list[int]:
         pass
 
+    @abstractmethod
+    def getSpanByIndex(self, sent: str, keyWord: str, index: int) -> list[int]:
+        pass
+
 
 class WordEvaluatorBMoore(WordFinder):
     def __init__(self, weatWordList: list[str]):
@@ -127,3 +131,11 @@ class WordEvaluatorRegexSuffixFixed(WordFinder):
         else:
             return re.search(pattern=pattern, string=normalizedSent).span()
 
+    def getSpanByIndex(self, sent: str, keyWord: str, index: int):
+        currentPos = 0
+        normalizedSent = normalize(sent)
+        for i, word in enumerate(normalizedSent.split()):
+            if i == index:
+                return currentPos, currentPos + len(word)
+            else:
+                currentPos += len(word) + 1

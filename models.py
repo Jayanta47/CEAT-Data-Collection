@@ -7,7 +7,9 @@ from transformers import AutoTokenizer, AutoModelForMaskedLM
 
 class ModelWrapper(ABC):
     @abstractmethod
-    def getWordVector(self, word: str, sent: str, index: int) -> np.array:
+    def getWordVector(
+        self, word: str, sent: str, index: int, span: list[int]
+    ) -> np.array:
         pass
 
 
@@ -19,6 +21,9 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
         self.tokenizer = AutoTokenizer.from_pretrained(
             tokenizer_name
         )  # add_special_tokens=False
+
+        if torch.cuda.is_available():
+            self.model = self.model.to("cuda:0")
 
     def getTokenIndices(self, offset_mapping, index, span):
         indices = []
