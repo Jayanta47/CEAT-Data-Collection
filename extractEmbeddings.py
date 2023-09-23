@@ -72,8 +72,10 @@ class EmbeddingExtractor:
             weatWordEmbeddings[word] = []
 
         for word in weatWordSentenceDict:
+            print(f"Processing For: {word}")
+            sentenceRange = min(len(weatWordSentenceDict[word]), 100000)
             for index, sentence in tqdm(
-                enumerate(weatWordSentenceDict[word]), desc="Processing Sentences"
+                enumerate(weatWordSentenceDict[word][:sentenceRange]), desc="Processing Sentences"
             ):
                 sentence, index = self.sentenceProcessor.shortenSentence(sentence, word)
                 span = self.sentenceProcessor.getSpan(sentence, word, index)
