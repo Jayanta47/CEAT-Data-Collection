@@ -1,3 +1,4 @@
+import sys
 from wordFinder import *
 import json
 from extractSentences import normalizeWeatDict
@@ -58,10 +59,11 @@ class SentenceProcessor:
 
 class EmbeddingExtractor:
     def __init__(
-        self, sentenceProcessor: SentenceProcessor, model: ModelWrapper
+        self, sentenceProcessor: SentenceProcessor, model: ModelWrapper, loggerFile=None
     ) -> None:
         self.sentenceProcessor = sentenceProcessor
         self.model = model
+        self.loggerFile = loggerFile
 
     def extract(
         self, weatWordSentenceDict: dict[str, list[str]]
@@ -75,16 +77,27 @@ class EmbeddingExtractor:
             print(f"Processing For: {word}")
             sentenceRange = min(len(weatWordSentenceDict[word]), 100000)
             for index, sentence in tqdm(
-                enumerate(weatWordSentenceDict[word][:sentenceRange]), desc="Processing Sentences"
+                enumerate(weatWordSentenceDict[word][:sentenceRange]),
+                desc="Processing Sentences",
             ):
-                sentence, index = self.sentenceProcessor.shortenSentence(sentence, word)
+                try:
+                    sentence, index = self.sentenceProcessor.shortenSentence(
+                        sentence, word
+                    )
+                except:
+                    self.loggerFile.write(
+                        f"Cannot find {word} at {index}\nSentence: {sentence}\n"
+                    )
+                    continue
                 span = self.sentenceProcessor.getSpan(sentence, word, index)
                 try:
                     weatWordEmbeddings[word].append(
                         self.model.getWordVector(word, sentence, index, span)
                     )
                 except:
-                    print("Error with: ", sentence)
+                    self.loggerFile.write(
+                        f"Error for {word} at {index}\nSentence: {sentence}\n"
+                    )
 
         return weatWordEmbeddings
 
@@ -94,14 +107,20 @@ if __name__ == "__main__":
     weatWordDict = normalizeWeatDict(weatWordDict)
     evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
     processor = SentenceProcessor(evaluator)
-    processor.setLength(9)
+
+    if sys.argv[1] == "-l":
+        sentenceLength = int(sys.argv[2])
+    else:
+        print("sentenceLength not defined")
+    processor.setLength(sentenceLength)
 
     model = BanglaBertEmbeddingExtractor(
         model_name="csebuetnlp/banglabert_large_generator",
         tokenizer_name="csebuetnlp/banglabert_large_generator",
     )
 
-    extractor = EmbeddingExtractor(processor, model)
+    loggerFile = open("./embeddings/log.txt", "w")
+    extractor = EmbeddingExtractor(processor, model, loggerFile)
 
     # load the pickle file
     weatWordSentenceDict = pickle.load(open("./results/results.pkl", "rb"))
