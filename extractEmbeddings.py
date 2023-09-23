@@ -63,9 +63,6 @@ class EmbeddingExtractor:
         self.sentenceProcessor = sentenceProcessor
         self.model = model
 
-    def savePickle(self, filename: str, data: dict[str, list[np.array]]):
-        pickle.dump(data, open(filename, "wb"))
-
     def extract(
         self, weatWordSentenceDict: dict[str, list[str]]
     ) -> dict[str, list[np.array]]:

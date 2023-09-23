@@ -123,6 +123,7 @@ same_words_dict = {
     "পিঁপড়া": ["পিঁপড়ে"],
     "প্রাণিবিজ্ঞান": ["প্রাণীবিজ্ঞান"],
     "একতারা": ["একতার"],
+    "পদার্থবিজ্ঞান": ["পদার্থবিদ্যা"],
 }
 word_sentence_dict = merge_same_words(word_sentence_dict, same_words_dict)
 generate_results(word_sentence_dict)
