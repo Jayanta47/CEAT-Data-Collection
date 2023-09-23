@@ -30,7 +30,7 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
         for i, token in enumerate(offset_mapping):
             if i < index:
                 continue
-            if token[0] >= span[0] and token[0] <= span[1]:
+            if token[0] >= span[0] and token[0] < span[1]:
                 indices.append(i)
             elif token[0] > span[1]:
                 break

@@ -136,6 +136,6 @@ class WordEvaluatorRegexSuffixFixed(WordFinder):
         normalizedSent = normalize(sent)
         for i, word in enumerate(normalizedSent.split()):
             if i == index:
-                return currentPos, currentPos + len(word)
+                return currentPos, currentPos + len(keyWord)
             else:
                 currentPos += len(word) + 1

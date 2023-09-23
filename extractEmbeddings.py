@@ -8,17 +8,6 @@ from tqdm import tqdm
 import pickle
 from models import ModelWrapper, BanglaBertEmbeddingExtractor
 
-# weatWordDict = json.load(open('weatWordsWithSuffix.jsonl', 'r', encoding='utf-8'))
-# weatWordDict = normalizeWeatDict(weatWordDict)
-# weatWordList = list(weatWordDict.keys())
-# evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
-# sentence = "খাওয়া দাওয়া পার ডে ২২০ - ৩০০ টাকা। গোলাপ রাজ্য (ভ্রমণ কাহিনী) অভিজিৎ সাগর A rose for my rose.......এটার বদলে যদি বলি a kingdom of rose for my beautiful rose ? কেমন হবে বলুন তো?- যা হবে তা ভাবনাতেই থাকুক।"
-# indices = evaluator.getIndex(sentence,
-#                          "গোলাপ")
-# print(indices)
-
-# print(sentence.split()[indices[0]])
-
 
 def getSentencesSample(sentenceList, maxItems=1000):
     numItems = min(maxItems, len(sentenceList))
@@ -109,30 +98,35 @@ if __name__ == "__main__":
     processor.setLength(9)
 
     model = BanglaBertEmbeddingExtractor(
-        model_name="csebuetnlp/banglabert_large",
-        tokenizer_name="csebuetnlp/banglabert_large",
+        model_name="csebuetnlp/banglabert_large_generator",
+        tokenizer_name="csebuetnlp/banglabert_large_generator",
     )
 
     extractor = EmbeddingExtractor(processor, model)
 
+    # load the pickle file
+    weatWordSentenceDict = pickle.load(open("./results/results.pkl", "rb"))
+    embedding = extractor.extract(weatWordSentenceDict)
+    pickle.dump(embedding, open("./embeddings/embeddings.pkl", "wb"))
+
     # test index
-    sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
-    sent2 = "যথাযথ কর্তৃপক্ষের উচিত এই সকল নিদর্শনসমুহের নিয়মিত পরিচর্যা করা, নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপ রাজ্য (ভ্রমণ কাহিনী) অভিজিৎ সাগর A rose for my rose.......এটার বদলে যদি বলি a kingdom of rose for my beautiful rose ? কেমন হবে বলুন তো?- যা হবে তা ভাবনাতেই থাকুক।"
-    sent3 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের রাজ্য"
-    sent4 = "গোলাপের রাজ্য"
-    sent5 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের। রাজ্য"
+    # sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
+    # sent2 = "যথাযথ কর্তৃপক্ষের উচিত এই সকল নিদর্শনসমুহের নিয়মিত পরিচর্যা করা, নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপ রাজ্য (ভ্রমণ কাহিনী) অভিজিৎ সাগর A rose for my rose.......এটার বদলে যদি বলি a kingdom of rose for my beautiful rose ? কেমন হবে বলুন তো?- যা হবে তা ভাবনাতেই থাকুক।"
+    # sent3 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের রাজ্য"
+    # sent4 = "গোলাপের রাজ্য"
+    # sent5 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের। রাজ্য"
 
-    short_sent_1 = processor.shortenSentence(sent1, "গোলাপ")[0]
-    short_sent_2 = processor.shortenSentence(sent2, "গোলাপ")[0]
-    short_sent_3 = processor.shortenSentence(sent3, "গোলাপ")[0]
-    short_sent_4 = processor.shortenSentence(sent4, "গোলাপ")[0]
-    short_sent_5 = processor.shortenSentence(sent5, "গোলাপ")[0]
+    # short_sent_1 = processor.shortenSentence(sent1, "গোলাপ")[0]
+    # short_sent_2 = processor.shortenSentence(sent2, "গোলাপ")[0]
+    # short_sent_3 = processor.shortenSentence(sent3, "গোলাপ")[0]
+    # short_sent_4 = processor.shortenSentence(sent4, "গোলাপ")[0]
+    # short_sent_5 = processor.shortenSentence(sent5, "গোলাপ")[0]
 
-    print(short_sent_1, evaluator.getSpan(short_sent_1, "গোলাপ"))
-    print(short_sent_2, evaluator.getSpan(short_sent_2, "গোলাপ"))
-    print(short_sent_3, evaluator.getSpan(short_sent_3, "গোলাপ"))
-    print(short_sent_4, evaluator.getSpan(short_sent_4, "গোলাপ"))
-    print(short_sent_5, evaluator.getSpan(short_sent_5, "গোলাপ"))
+    # print(short_sent_1, evaluator.getSpan(short_sent_1, "গোলাপ"))
+    # print(short_sent_2, evaluator.getSpan(short_sent_2, "গোলাপ"))
+    # print(short_sent_3, evaluator.getSpan(short_sent_3, "গোলাপ"))
+    # print(short_sent_4, evaluator.getSpan(short_sent_4, "গোলাপ"))
+    # print(short_sent_5, evaluator.getSpan(short_sent_5, "গোলাপ"))
 
     # print(processor.shortenSentence(sent1, "গোলাপ"))
     # print(processor.shortenSentence(sent2, "গোলাপ"))
@@ -141,8 +135,3 @@ if __name__ == "__main__":
     # print(processor.shortenSentence(sent5, "গোলাপ"))
 
     # print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
-
-    # load the pickle file
-    weatWordSentenceDict = pickle.load(open("./results/results.pkl", "rb"))
-
-    # extractor.extract(weatWordDict)
