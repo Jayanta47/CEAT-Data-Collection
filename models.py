@@ -52,7 +52,7 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
     ) -> np.array:
         normalized_sentence = normalize(sent)  # no additional params needed?
 
-        input_tokens = self.tokenizer.encode(normalized_sentence, return_tensors="pt")
+        input_tokens = self.tokenizer(normalized_sentence, return_tensors="pt")
 
         input_token_offsets = self.tokenizer(
             normalized_sentence,
