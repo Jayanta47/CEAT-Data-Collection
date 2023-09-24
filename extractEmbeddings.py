@@ -123,7 +123,7 @@ if __name__ == "__main__":
     extractor = EmbeddingExtractor(processor, model, loggerFile)
 
     # load the pickle file
-    weatWordSentenceDict = pickle.load(open("./results/results.pkl", "rb"))
+    weatWordSentenceDict = pickle.load(open("./results/results_small.pkl", "rb"))
     embedding = extractor.extract(weatWordSentenceDict)
     pickle.dump(embedding, open("./embeddings/embeddings.pkl", "wb"))
 

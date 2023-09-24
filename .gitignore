@@ -4,3 +4,4 @@ allWeatWords.txt
 [0-9]*.txt
 results/*
 .vscode/
+embeddings/*

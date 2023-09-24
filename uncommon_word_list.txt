@@ -71,5 +71,13 @@ insects = -6 (keep top two so that insects==flowers)
 weapon = -4 
 music = -9 ?
 
+
+
+কীট - কীটের, কীটেরা
+জোঁক - জোঁকেরা
+সেতার - সেতারের
+পদার্থবিজ্ঞান - পদার্থবিজ্ঞানর, পদার্থবিজ্ঞানয়
+প্রাণিবিদ্যা - প্রাণিবিদ্যার
+
 pleasant = -2
 unpleasant = -3 (keep top unpleasant word)
