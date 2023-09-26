@@ -5,3 +5,4 @@ allWeatWords.txt
 results/*
 .vscode/
 embeddings/*
+log.txt

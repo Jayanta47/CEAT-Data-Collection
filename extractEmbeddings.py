@@ -7,7 +7,7 @@ import numpy as np
 import random
 from tqdm import tqdm
 import pickle
-from models import ModelWrapper, BanglaBertEmbeddingExtractor
+from models import ModelWrapper, BanglaBertEmbeddingExtractor, BanglaBertDiscriminator
 
 
 def getSentencesSample(sentenceList, maxItems=1000):
@@ -114,18 +114,30 @@ if __name__ == "__main__":
         print("sentenceLength not defined")
     processor.setLength(sentenceLength)
 
+    if sentenceLength == -1:
+        nameExtension = "all"
+    else:
+        nameExtension = str(sentenceLength)
+
     model = BanglaBertEmbeddingExtractor(
         model_name="csebuetnlp/banglabert_large_generator",
         tokenizer_name="csebuetnlp/banglabert_large_generator",
     )
 
-    loggerFile = open("./embeddings/log.txt", "w")
-    extractor = EmbeddingExtractor(processor, model, loggerFile)
+    modelBbertDisc = BanglaBertDiscriminator(
+        model_name="csebuetnlp/banglabert_large",
+        tokenizer_name="csebuetnlp/banglabert_large",
+    )
+
+    loggerFile = open(f"./embeddings/log_{nameExtension}.txt", "w")
+    extractor = EmbeddingExtractor(processor, modelBbertDisc, loggerFile)
 
     # load the pickle file
-    weatWordSentenceDict = pickle.load(open("./results/results_small.pkl", "rb"))
+    weatWordSentenceDict = pickle.load(open("./results/results_final_v2.pkl", "rb"))
     embedding = extractor.extract(weatWordSentenceDict)
-    pickle.dump(embedding, open("./embeddings/embeddings.pkl", "wb"))
+    pickle.dump(
+        embedding, open(f"./embeddings/embeddings_v2_len_{nameExtension}.pkl", "wb")
+    )
 
     # test index
     # sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
