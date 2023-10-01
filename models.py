@@ -6,6 +6,9 @@ from transformers import AutoTokenizer, AutoModelForMaskedLM, AutoModelForPreTra
 
 
 class ModelWrapper(ABC):
+    def setEmbeddingLayer(self, layer: int) -> None:
+        self.layer = layer
+
     @abstractmethod
     def getWordVector(
         self, word: str, sent: str, index: int, span: list[int]
@@ -13,7 +16,7 @@ class ModelWrapper(ABC):
         pass
 
 
-class BanglaBertEmbeddingExtractor(ModelWrapper):
+class MLMEmbeddingExtractor(ModelWrapper):
     def __init__(self, model_name: str, tokenizer_name: str) -> None:
         self.model = AutoModelForMaskedLM.from_pretrained(
             model_name, output_hidden_states=True
@@ -24,6 +27,9 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
 
         if torch.cuda.is_available():
             self.model = self.model.to("cuda")
+
+        # set the layer to extract the embedding from to be the 25th by default
+        self.layer = 24
 
     def getTokenIndices(self, offset_mapping, index, span):
         indices = []
@@ -41,11 +47,13 @@ class BanglaBertEmbeddingExtractor(ModelWrapper):
         if averagePooling:
             # return average pooling
             return np.mean(
-                output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0
+                output[1][self.layer][0].detach().cpu().numpy()[tokenIndices], axis=0
             )
         else:
             # return the max pooling
-            return np.max(output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0)
+            return np.max(
+                output[1][self.layer][0].detach().cpu().numpy()[tokenIndices], axis=0
+            )
 
     def getWordVector(
         self, word: str, sent: str, index: int, span: list[int]
@@ -81,6 +89,9 @@ class BanglaBertDiscriminator(ModelWrapper):
         if torch.cuda.is_available():
             self.model = self.model.to("cuda")
 
+        # set the layer to extract the embedding from to be the 25th by default
+        self.layer = 24
+
     def getTokenIndices(self, offset_mapping, index, span):
         indices = []
         for i, token in enumerate(offset_mapping):
@@ -97,11 +108,13 @@ class BanglaBertDiscriminator(ModelWrapper):
         if averagePooling:
             # return average pooling
             return np.mean(
-                output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0
+                output[1][self.layer][0].detach().cpu().numpy()[tokenIndices], axis=0
             )
         else:
             # return the max pooling
-            return np.max(output[1][24][0].detach().cpu().numpy()[tokenIndices], axis=0)
+            return np.max(
+                output[1][self.layer][0].detach().cpu().numpy()[tokenIndices], axis=0
+            )
 
     def getWordVector(
         self, word: str, sent: str, index: int, span: list[int]
@@ -126,7 +139,7 @@ class BanglaBertDiscriminator(ModelWrapper):
 
 
 if __name__ == "__main__":
-    model = BanglaBertEmbeddingExtractor(
+    model = MLMEmbeddingExtractor(
         model_name="csebuetnlp/banglabert_large",
         tokenizer_name="csebuetnlp/banglabert_large",
     )

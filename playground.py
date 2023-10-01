@@ -40,7 +40,7 @@ def removeUnwantedWords():
 
 def printExecutionTime():
     total = 0
-    weatWordSentenceDict = pickle.load(open("./results/results_augmented_V2.pkl", "rb"))
+    weatWordSentenceDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
     for word in weatWordSentenceDict:
         total += min(len(weatWordSentenceDict[word]), 100000)
 
@@ -51,7 +51,7 @@ def printExecutionTime():
     print(total / (10 * 60 * 60), "hrs")
 
     print("Sir's PC:")
-    print(total / (60 * 60 * 60), "hrs")
+    print(total / (77 * 60 * 60), "hrs")
 
 
 def createSmallerDataset():
@@ -76,6 +76,34 @@ def examinEmbedding():
     print(weatWordEmbedidngDict["গোলাপ"][1].size)
 
 
+def showAllWords():
+    weatWordEmbedidngDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
+    for word in weatWordEmbedidngDict:
+        print(f"{word}: {len(weatWordEmbedidngDict[word])}")
+
+
+def checkSeed():
+    np.random.seed(32)
+    embeddingsMapper = {
+        "BanglaBert_Generator": "embeddings_len_%s.pkl",
+        "BanglaBert_Discriminator": "embeddings_bbdisc_len_%s.pkl",
+        "Muril_Base": "embeddings_murilB_len_%s.pkl",
+        "XLM_Roberta_Base": "embeddings_xlmRB_len_%s.pkl",
+    }
+
+    for model in embeddingsMapper:
+        print(model)
+        np.random.seed(32)
+        for s in range(4):
+            for i in range(6):
+                print(
+                    f"S: {s}, I: {i} ->",
+                    np.random.randint(0, 1000),
+                    np.random.randint(0, 2000),
+                    np.random.randint(0, 200),
+                )
+
+
 from wordFinder import *
 import json
 from extractSentences import normalizeWeatDict
@@ -98,4 +126,8 @@ import pickle
 
 # printExecutionTime()
 
-examinEmbedding()
+# showAllWords()
+
+# examinEmbedding()
+
+checkSeed()

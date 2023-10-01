@@ -7,7 +7,7 @@ import numpy as np
 import random
 from tqdm import tqdm
 import pickle
-from models import ModelWrapper, BanglaBertEmbeddingExtractor, BanglaBertDiscriminator
+from models import ModelWrapper, MLMEmbeddingExtractor, BanglaBertDiscriminator
 
 
 def getSentencesSample(sentenceList, maxItems=1000):
@@ -119,7 +119,7 @@ if __name__ == "__main__":
     else:
         nameExtension = str(sentenceLength)
 
-    model = BanglaBertEmbeddingExtractor(
+    model = MLMEmbeddingExtractor(
         model_name="csebuetnlp/banglabert_large_generator",
         tokenizer_name="csebuetnlp/banglabert_large_generator",
     )
@@ -129,14 +129,26 @@ if __name__ == "__main__":
         tokenizer_name="csebuetnlp/banglabert_large",
     )
 
+    modelMurilBase = MLMEmbeddingExtractor(
+        model_name="google/muril-base-cased",
+        tokenizer_name="google/muril-base-cased",
+    )
+    modelMurilBase.setEmbeddingLayer(12)
+
+    modelXLMRobertaBase = MLMEmbeddingExtractor(
+        model_name="xlm-roberta-base",
+        tokenizer_name="xlm-roberta-base",
+    )
+    modelXLMRobertaBase.setEmbeddingLayer(12)
+
     loggerFile = open(f"./embeddings/log_{nameExtension}.txt", "w")
     extractor = EmbeddingExtractor(processor, modelBbertDisc, loggerFile)
 
     # load the pickle file
-    weatWordSentenceDict = pickle.load(open("./results/results_final_v2.pkl", "rb"))
+    weatWordSentenceDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
     embedding = extractor.extract(weatWordSentenceDict)
     pickle.dump(
-        embedding, open(f"./embeddings/embeddings_v2_len_{nameExtension}.pkl", "wb")
+        embedding, open(f"./embeddings/embeddings_len_{nameExtension}.pkl", "wb")
     )
 
     # test index
