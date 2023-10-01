@@ -121,21 +121,21 @@ if __name__ == "__main__":
     else:
         nameExtension = str(sentenceLength)
 
-    model = MLMEmbeddingExtractor(
-        model_name="csebuetnlp/banglabert_large_generator",
-        tokenizer_name="csebuetnlp/banglabert_large_generator",
-    )
+    # model = MLMEmbeddingExtractor(
+    #     model_name="csebuetnlp/banglabert_large_generator",
+    #     tokenizer_name="csebuetnlp/banglabert_large_generator",
+    # )
 
-    modelBbertDisc = BanglaBertDiscriminator(
-        model_name="csebuetnlp/banglabert_large",
-        tokenizer_name="csebuetnlp/banglabert_large",
-    )
+    # modelBbertDisc = BanglaBertDiscriminator(
+    #     model_name="csebuetnlp/banglabert_large",
+    #     tokenizer_name="csebuetnlp/banglabert_large",
+    # )
 
-    modelMurilBase = MLMEmbeddingExtractor(
-        model_name="google/muril-base-cased",
-        tokenizer_name="google/muril-base-cased",
-    )
-    modelMurilBase.setEmbeddingLayer(12)
+    # modelMurilBase = MLMEmbeddingExtractor(
+    #     model_name="google/muril-base-cased",
+    #     tokenizer_name="google/muril-base-cased",
+    # )
+    # modelMurilBase.setEmbeddingLayer(12)
 
     modelXLMRobertaBase = MLMEmbeddingExtractor(
         model_name="xlm-roberta-base",
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     modelXLMRobertaBase.setEmbeddingLayer(12)
 
     loggerFile = open(f"./embeddings/log_{nameExtension}.txt", "w")
-    extractor = EmbeddingExtractor(processor, modelBbertDisc, loggerFile)
+    extractor = EmbeddingExtractor(processor, modelXLMRobertaBase, loggerFile)
 
     # load the pickle file
     weatWordSentenceDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
