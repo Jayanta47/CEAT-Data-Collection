@@ -85,9 +85,10 @@ class EmbeddingExtractor:
                         sentence, word
                     )
                 except:
-                    self.loggerFile.write(
-                        f"Cannot find {word} at {index}\nSentence: {sentence}\n"
-                    )
+                    if self.loggerFile:
+                        self.loggerFile.write(
+                            f"Cannot find {word} at {index}\nSentence: {sentence}\n"
+                        )
                     continue
                 span = self.sentenceProcessor.getSpan(sentence, word, index)
                 try:
@@ -95,9 +96,10 @@ class EmbeddingExtractor:
                         self.model.getWordVector(word, sentence, index, span)
                     )
                 except:
-                    self.loggerFile.write(
-                        f"Error for {word} at {index}\nSentence: {sentence}\n"
-                    )
+                    if self.loggerFile:
+                        self.loggerFile.write(
+                            f"Error for {word} at {index}\nSentence: {sentence}\n"
+                        )
 
         return weatWordEmbeddings
 
