@@ -1,9 +1,11 @@
 from extractCeatCategories import getCeatWords
 from sklearn.metrics.pairwise import cosine_similarity
-import scipy.stats
 from scipy.stats import norm
 import numpy as np
 import pickle
+import os
+import sys
+from prettytable import PrettyTable
 
 
 def associate(w, A, B):
@@ -35,16 +37,11 @@ def EffectSize(X, Y, A, B):
 
 def CEAT_DataGeneration(
     weatGroup: list,
-    embeddingsFileName: str,
+    embeddingsDict,
     nSample=10000,
-    seed=32,
     model="bert",
-    experimentType="random",
     save=False,
 ):
-    np.random.seed(seed=seed)
-    embeddingsDict = pickle.load(open(embeddingsFileName, "rb"))
-
     effectSizeArray = np.array([], dtype=np.float32)
     varianceArray = np.array([], dtype=np.float32)
 
@@ -78,12 +75,6 @@ def CEAT_DataGeneration(
                 for word in BSet
             ]
         )
-
-        # print(f"X Shape: {X.shape}")
-        # print(f"Y Shape: {Y.shape}")
-        # print(f"A Shape: {A.shape}")
-        # print(f"B Shape: {B.shape}")
-        # print()
 
         effectSize, variance = EffectSize(X, Y, A, B)
 
@@ -135,33 +126,114 @@ def CEAT_MetaAnalysis(
     return CES, p_value
 
 
+def writeDataValue(model, data, sentenceLengths):
+    table = PrettyTable()
+    headers = ["CEAT Type", "Data Value"]
+    headers.extend([f"Length: {lenString}" for lenString in sentenceLengths])
+
+    table.field_names = headers
+
+    print(headers)
+
+    for category, value in data.items():
+        row = [
+            f"{category}\n{value['target']}\n{value['attribute']}",
+            "\nCES:\nP-Value:",
+        ]
+        row.extend(
+            [
+                f"\n{value[lenString]['CES']}\n{value[lenString]['p']}"
+                for lenString in sentenceLengths
+            ]
+        )
+        table.add_row(row)
+
+    # print(table)
+    with open(f"./results/{model}_ceat_results.txt", "w") as f:
+        f.write(table.get_string())
+        f.close()
+
+
 if __name__ == "__main__":
     categoryDefinition, ceatData = getCeatWords()
 
-    models = ["BanglaBert_Generator"]
+    embeddingsMapper = {
+        "BanglaBert_Generator": "embeddings_len_%s.pkl",
+        "BanglaBert_Discriminator": "embeddings_bbdisc_len_%s.pkl",
+        "Muril_Base": "embeddings_murilB_len_%s.pkl",
+        "XLM_Roberta_Base": "embeddings_xlmRB_len_%s.pkl",
+    }
 
-    for model in models:
+    sentenceLengths = ["9", "15", "25", "all"]
+    seed = 32
+    np.random.seed(seed=seed)
+    experimentType = "random"
+    if len(sys.argv) >= 2 and sys.argv[1] == "-exp" and sys.argv[2] == "fixed":
+        experimentType = "fixed"
+
+    print(f"Experiment Type: {experimentType}")
+
+    for model in embeddingsMapper:
         print(f"Model In Use: {model}")
-        for testIndex, ceatGroup in enumerate(ceatData):
-            print(categoryDefinition[testIndex]["Category Name"])
-            print("target: ", categoryDefinition[testIndex]["target(s)"])
-            print("attribute: ", categoryDefinition[testIndex]["attribute(s)"])
+        if experimentType == "fixed":
+            np.random.seed(seed=seed)
 
-            effectSizeArray, varianceArray = CEAT_DataGeneration(
-                ceatGroup,
-                embeddingsFileName="./embeddings/embeddings.pkl",
-                nSample=10,
-                seed=32,
-                model=model,
-                experimentType="random",
-                save=False,
-            )
-            pes, p_value = CEAT_MetaAnalysis(
-                effectSizeArray, varianceArray, nSample=10000
-            )
+        embeddingsFileFormat = embeddingsMapper[model]
+        data = {}
+        """
+        data is a container to hold values for each model in the following format:
+        {
+            sentenceLength: {
+                category: {
+                    target: [],
+                    attribute: [],
+                    CES: [],
+                    p: []
+                }
+            }
+        }
+        """
+        for category in categoryDefinition:
+            data[category["Category Name"]] = {
+                "target": category["target(s)"],
+                "attribute": category["attribute(s)"],
+            }
 
-            print(f"Combined Effect Size: {pes}")
-            print(f"p-value: {p_value}")
+        availableLengths = []
+
+        for lenString in sentenceLengths:
+            embeddingsFileName = embeddingsFileFormat % lenString
+            print(f"Embeddings File Name: {embeddingsFileName}")
+            embeddingsFilePath = os.path.join("./embeddings", model, embeddingsFileName)
+            if not os.path.exists(embeddingsFilePath):
+                print("File not found")
+                continue
+            availableLengths.append(lenString)
+            embeddingsDict = pickle.load(open(embeddingsFilePath, "rb"))
+            for testIndex, ceatGroup in enumerate(ceatData):
+                # print(categoryDefinition[testIndex]["Category Name"])
+                # print("target: ", categoryDefinition[testIndex]["target(s)"])
+                # print("attribute: ", categoryDefinition[testIndex]["attribute(s)"])
+
+                effectSizeArray, varianceArray = CEAT_DataGeneration(
+                    ceatGroup,
+                    embeddingsDict,
+                    nSample=10,
+                    model=model,
+                )
+                pes, p_value = CEAT_MetaAnalysis(
+                    effectSizeArray, varianceArray, nSample=10
+                )
+
+                # print(f"Combined Effect Size: {pes}")
+                # print(f"p-value: {p_value}")
+                data[categoryDefinition[testIndex]["Category Name"]][lenString] = {
+                    "CES": pes,
+                    "p": p_value,
+                }
+
+        # print(data)
+        writeDataValue(model=model, data=data, sentenceLengths=availableLengths)
 
 
 # def sample_statistics(X, Y, A, B, num=100):
