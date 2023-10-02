@@ -27,7 +27,7 @@ class SentenceProcessor:
         self.length = length
 
     def shortenSentence(self, sentence: str, word: str) -> str:
-        indices = self.evaluator.getIndex(sentence, word)
+        indices = self.evaluator.getIndex(sentence, word) # use cache here
         if len(indices) == 0:
             raise Exception("No match found")
 
@@ -76,7 +76,7 @@ class EmbeddingExtractor:
         for word in weatWordSentenceDict:
             print(f"Processing For: {word}")
             sentenceRange = min(len(weatWordSentenceDict[word]), 100000)
-            for index, sentence in tqdm(
+            for i, sentence in tqdm(
                 enumerate(weatWordSentenceDict[word][:sentenceRange]),
                 desc="Processing Sentences",
             ):

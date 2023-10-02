@@ -27,6 +27,7 @@ class MLMEmbeddingExtractor(ModelWrapper):
 
         if torch.cuda.is_available():
             self.model = self.model.to("cuda")
+            self.tokenizer = self.tokenizer.to("cuda")
 
         # set the layer to extract the embedding from to be the 25th by default
         self.layer = 24
@@ -88,6 +89,7 @@ class BanglaBertDiscriminator(ModelWrapper):
 
         if torch.cuda.is_available():
             self.model = self.model.to("cuda")
+            self.tokenizer = self.tokenizer.to("cuda")
 
         # set the layer to extract the embedding from to be the 25th by default
         self.layer = 24

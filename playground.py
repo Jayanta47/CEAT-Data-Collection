@@ -42,7 +42,7 @@ def printExecutionTime():
     total = 0
     weatWordSentenceDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
     for word in weatWordSentenceDict:
-        total += min(len(weatWordSentenceDict[word]), 100000)
+        total += min(len(weatWordSentenceDict[word]), 2000)
 
     print("With Gpu:")
     print(total / (40 * 60 * 60), "hrs")
@@ -51,7 +51,7 @@ def printExecutionTime():
     print(total / (10 * 60 * 60), "hrs")
 
     print("Sir's PC:")
-    print(total / (77 * 60 * 60), "hrs")
+    print(total / (58 * 60 * 60), "hrs")
 
 
 def createSmallerDataset():
@@ -124,10 +124,10 @@ import pickle
 
 # removeUnwantedWords()
 
-# printExecutionTime()
+printExecutionTime()
 
 # showAllWords()
 
 # examinEmbedding()
 
-checkSeed()
+# checkSeed()
