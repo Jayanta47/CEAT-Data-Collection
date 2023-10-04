@@ -70,7 +70,9 @@ def createSmallerDataset():
 
 
 def examinEmbedding():
-    weatWordEmbedidngDict = pickle.load(open("./embeddings/embeddings.pkl", "rb"))
+    weatWordEmbedidngDict = pickle.load(
+        open("./embeddings/BanglaBert_Generator/embeddings_len_9.pkl", "rb")
+    )
     print(len(weatWordEmbedidngDict))
 
     print(weatWordEmbedidngDict["গোলাপ"][1].size)
@@ -124,10 +126,10 @@ import pickle
 
 # removeUnwantedWords()
 
-printExecutionTime()
+# printExecutionTime()
 
 # showAllWords()
 
-# examinEmbedding()
+examinEmbedding()
 
 # checkSeed()

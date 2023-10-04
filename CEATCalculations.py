@@ -164,7 +164,7 @@ if __name__ == "__main__":
         "XLM_Roberta_Base": "embeddings_xlmRB_len_%s.pkl",
     }
 
-    sentenceLengths = ["9", "15", "25", "all"]
+    sentenceLengths = ["9", "25", "75", "all"]
     seed = 32
     np.random.seed(seed=seed)
     experimentType = "random"

@@ -43,8 +43,20 @@ def getCeatWords():
 
 if __name__ == "__main__":
     categoryDefinition, ceatData = getCeatWords()
-    for category in categoryDefinition:
+    # words = []
+    # import pickle
+
+    # weatWordSentenceDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
+    # for word in weatWordSentenceDict:
+    #     words.append(word)
+
+    for i, category in enumerate(categoryDefinition):
         print(category["Category Name"])
         print("target: ", category["target(s)"])
         print("attribute: ", category["attribute(s)"])
         print("---------------------------------------------------")
+
+        # for j in range(4):
+        #     for word in ceatData[i][j]:
+        #         if word not in words:
+        #             print(word, j)
