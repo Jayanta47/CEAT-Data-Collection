@@ -6,6 +6,8 @@ import pickle
 import os
 import sys
 from prettytable import PrettyTable
+from tqdm import tqdm
+import scipy
 
 
 def associate(w, A, B):
@@ -50,7 +52,7 @@ def CEAT_DataGeneration(
     ASet = weatGroup[2]
     BSet = weatGroup[3]
 
-    for i in range(nSample):
+    for i in tqdm(range(nSample)):
         X = np.array(
             [
                 embeddingsDict[word][np.random.randint(0, len(embeddingsDict[word]))]
@@ -92,7 +94,8 @@ def CEAT_MetaAnalysis(
     effectSizeArray, V, nSample=10000
 ):  # effectSizeArray and V are numpy array
     # inverse Variance
-    W = 1 / V
+    V = V.astype(np.float64)
+    W = 1.0 / V
     Q = np.sum(W * (effectSizeArray**2)) - (
         (np.sum(W * effectSizeArray) ** 2) / np.sum(W)
     )
@@ -116,17 +119,24 @@ def CEAT_MetaAnalysis(
     CES = np.sum(v * effectSizeArray) / np.sum(v)
 
     # calculate the Standard Error of the CES
-    SE_CES = np.sqrt(1 / np.sum(v))
+    SE_CES = np.sqrt(1.0 / np.sum(v))
 
     # calculate the p-value. use scipy.stats.norm.sf -> Survival function
     # Also equivalent to 1 - cdf
     # According to paper, it should be a 2-tailed p value, but the implementation shows single tailed.??
-    p_value = norm.sf((CES / SE_CES), loc=0, scale=1)
+    p_value = 2.0 * norm.sf(np.abs(CES / SE_CES), loc=0, scale=1)
+    # p_value = 2.0 * (1 - scipy.stats.norm.cdf(np.abs(CES / SE_CES), loc=0, scale=1))
+
+    # if p_value > 0.8:
+    #     # print(V)
+    #     # print(effectSizeArray)
+    #     print("CES: ", CES)
+    #     print("SE_CES: ", SE_CES)
 
     return CES, p_value
 
 
-def writeDataValue(model, data, sentenceLengths):
+def writeDataValue(model, data, sentenceLengths, nSample):
     table = PrettyTable()
     headers = ["CEAT Type", "Data Value"]
     headers.extend([f"Length: {lenString}" for lenString in sentenceLengths])
@@ -149,8 +159,9 @@ def writeDataValue(model, data, sentenceLengths):
         table.add_row(row)
 
     # print(table)
-    with open(f"./results/{model}_ceat_results.txt", "w") as f:
+    with open(f"./results/{model}_ceat_results_{nSample}.txt", "w") as f:
         f.write(table.get_string())
+        f.write("\n\n")
         f.close()
 
 
@@ -166,6 +177,7 @@ if __name__ == "__main__":
 
     sentenceLengths = ["9", "25", "75", "all"]
     seed = 32
+    nSample = 10
     np.random.seed(seed=seed)
     experimentType = "random"
     if len(sys.argv) >= 2 and sys.argv[1] == "-exp" and sys.argv[2] == "fixed":
@@ -210,6 +222,7 @@ if __name__ == "__main__":
                 continue
             availableLengths.append(lenString)
             embeddingsDict = pickle.load(open(embeddingsFilePath, "rb"))
+            print("Done Loading...")
             for testIndex, ceatGroup in enumerate(ceatData):
                 # print(categoryDefinition[testIndex]["Category Name"])
                 # print("target: ", categoryDefinition[testIndex]["target(s)"])
@@ -218,11 +231,11 @@ if __name__ == "__main__":
                 effectSizeArray, varianceArray = CEAT_DataGeneration(
                     ceatGroup,
                     embeddingsDict,
-                    nSample=10,
+                    nSample=nSample,
                     model=model,
                 )
                 pes, p_value = CEAT_MetaAnalysis(
-                    effectSizeArray, varianceArray, nSample=10
+                    effectSizeArray, varianceArray, nSample=nSample
                 )
 
                 # print(f"Combined Effect Size: {pes}")
@@ -233,7 +246,10 @@ if __name__ == "__main__":
                 }
 
         # print(data)
-        writeDataValue(model=model, data=data, sentenceLengths=availableLengths)
+        print((("Writing To file...")))
+        writeDataValue(
+            model=model, data=data, sentenceLengths=availableLengths, nSample=nSample
+        )
 
 
 # def sample_statistics(X, Y, A, B, num=100):
