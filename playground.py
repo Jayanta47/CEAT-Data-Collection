@@ -51,7 +51,7 @@ def printExecutionTime():
     print(total / (10 * 60 * 60), "hrs")
 
     print("Sir's PC:")
-    print(total / (58 * 60 * 60), "hrs")
+    print(total / (35 * 60 * 60), "hrs")
 
 
 def createSmallerDataset():
@@ -130,6 +130,42 @@ import pickle
 
 # showAllWords()
 
-examinEmbedding()
+# examinEmbedding()
 
 # checkSeed()
+
+
+# class A:
+#     def __init__(self):
+#         self.a = 1
+#         self.b = 2
+
+#     def setA(self, a):
+#         self.a = a
+
+#     def setB(self, b):
+#         self.b = b
+
+
+# class B:
+#     def __init__(self, A):
+#         self.A = A
+
+#     def showA(self):
+#         print("a = ", self.A.a)
+#         print("b = ", self.A.b)
+
+
+# clsA = A()
+
+# clsB = B(clsA)
+
+# clsB.showA()
+
+# clsA.setA(5)
+
+# clsB.showA()
+
+# clsA.setB(10)
+
+# clsB.showA()

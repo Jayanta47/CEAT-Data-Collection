@@ -27,7 +27,7 @@ class SentenceProcessor:
         self.length = length
 
     def shortenSentence(self, sentence: str, word: str) -> str:
-        indices = self.evaluator.getIndex(sentence, word) # use cache here
+        indices = self.evaluator.getIndex(sentence, word)  # use cache here
         if len(indices) == 0:
             raise Exception("No match found")
 
@@ -64,6 +64,30 @@ class EmbeddingExtractor:
         self.sentenceProcessor = sentenceProcessor
         self.model = model
         self.loggerFile = loggerFile
+        self.randomSelect = False
+        self.maxSentenceSample = 100000
+
+    def setLoggerFile(self, loggerFile) -> None:
+        self.loggerFile = loggerFile
+
+    def setRandomSelect(self, randomSelect: bool) -> None:
+        self.randomSelect = randomSelect
+
+    def setMaxSentenceSample(self, maxSentenceSample: int) -> None:
+        self.maxSentenceSample = maxSentenceSample
+
+    def getSampleSentences(self, sentenceList: list[str]) -> list[str]:
+        sentences = []
+        if self.randomSelect:
+            if len(sentenceList) > self.maxSentenceSample:
+                sentences = random.sample(sentenceList, self.maxSentenceSample)
+            else:
+                sentences = sentenceList
+        else:
+            sentenceRange = min(len(sentenceList), self.maxSentenceSample)
+            sentences = sentenceList[:sentenceRange]
+
+        return sentences
 
     def extract(
         self, weatWordSentenceDict: dict[str, list[str]]
@@ -75,9 +99,10 @@ class EmbeddingExtractor:
 
         for word in weatWordSentenceDict:
             print(f"Processing For: {word}")
-            sentenceRange = min(len(weatWordSentenceDict[word]), 100000)
+
+            sentences = self.getSampleSentences(weatWordSentenceDict[word])
             for i, sentence in tqdm(
-                enumerate(weatWordSentenceDict[word][:sentenceRange]),
+                enumerate(sentences),
                 desc="Processing Sentences",
             ):
                 try:
@@ -114,68 +139,98 @@ if __name__ == "__main__":
         sentenceLength = int(sys.argv[2])
     else:
         print("sentenceLength not defined")
+        exit()
     processor.setLength(sentenceLength)
 
     if sentenceLength == -1:
         nameExtension = "all"
-    else:
+    elif sentenceLength > 0:
         nameExtension = str(sentenceLength)
 
-    model = MLMEmbeddingExtractor(
-        model_name="csebuetnlp/banglabert_large_generator",
-        tokenizer_name="csebuetnlp/banglabert_large_generator",
-    )
+    models = [
+        "BanglaBert_Generator",
+        "BanglaBert_Discriminator",
+        "Muril_Large",
+        "XLM_Roberta_Large",
+    ]
 
-    modelBbertDisc = BanglaBertDiscriminator(
-        model_name="csebuetnlp/banglabert_large",
-        tokenizer_name="csebuetnlp/banglabert_large",
-    )
+    if sys.argv[3] == "-m":
+        modelName = models[int(sys.argv[4])]
+        print(f"Model: {modelName}")
+    else:
+        print("Model not defined")
+        exit()
 
-    modelMurilBase = MLMEmbeddingExtractor(
-        model_name="google/muril-base-cased",
-        tokenizer_name="google/muril-base-cased",
-    )
-    modelMurilBase.setEmbeddingLayer(12)
+    if modelName == "BanglaBert_Generator":
+        model = MLMEmbeddingExtractor(
+            model_name="csebuetnlp/banglabert_large_generator",
+            tokenizer_name="csebuetnlp/banglabert_large_generator",
+        )
+    elif modelName == "BanglaBert_Discriminator":
+        model = BanglaBertDiscriminator(
+            model_name="csebuetnlp/banglabert_large",
+            tokenizer_name="csebuetnlp/banglabert_large",
+        )
+    elif modelName == "Muril_Large":
+        model = MLMEmbeddingExtractor(
+            model_name="google/muril-large-cased",
+            tokenizer_name="google/muril-large-cased",
+        )
+    elif modelName == "XLM_Roberta_Large":
+        model = MLMEmbeddingExtractor(
+            model_name="xlm-roberta-large",
+            tokenizer_name="xlm-roberta-large",
+        )
 
-    modelXLMRobertaBase = MLMEmbeddingExtractor(
-        model_name="xlm-roberta-base",
-        tokenizer_name="xlm-roberta-base",
-    )
-    modelXLMRobertaBase.setEmbeddingLayer(12)
+    seed = 32
+    random.seed(seed)
 
-    loggerFile = open(f"./embeddings/log_{nameExtension}.txt", "w")
-    extractor = EmbeddingExtractor(processor, modelBbertDisc, loggerFile)
+    extractor = EmbeddingExtractor(processor, model)
 
     # load the pickle file
     weatWordSentenceDict = pickle.load(open("./results/result_final_v2.pkl", "rb"))
-    embedding = extractor.extract(weatWordSentenceDict)
-    pickle.dump(
-        embedding, open(f"./embeddings/embeddings_len_{nameExtension}.pkl", "wb")
-    )
 
-    # test index
-    # sent1 = "১৫০ টাকা নিয়েছিল। গোলাপ গ্রামের মজার একটা ব্যাপার লক্ষ করেছিলাম। সেখানে সব বাড়ির সাথেই লাগোয়া ছোটছোট গোলাপের বাগান আছে। গাড়ি নিয়ে স্বপরিবারে বেড়াতে যাওয়ার প্ল্যান করার আগে অবশ্যই নিরাপত্তার ব্যপারটি মাথায় রাখতে হবে। পরিবারের নিরাপত্তায় সবার সাথে ফোন এবং ফোনে রিচার্জ করে নিলে ভাল হয়।"
-    # sent2 = "যথাযথ কর্তৃপক্ষের উচিত এই সকল নিদর্শনসমুহের নিয়মিত পরিচর্যা করা, নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপ রাজ্য (ভ্রমণ কাহিনী) অভিজিৎ সাগর A rose for my rose.......এটার বদলে যদি বলি a kingdom of rose for my beautiful rose ? কেমন হবে বলুন তো?- যা হবে তা ভাবনাতেই থাকুক।"
-    # sent3 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের রাজ্য"
-    # sent4 = "গোলাপের রাজ্য"
-    # sent5 = "নতুবা এই সকল নিদর্শনসমুহ একসময় কালের গর্ভে বিলীন হয়ে যাবে। গোলাপের। রাজ্য"
+    if sentenceLength > 0:
+        loggerFile = open(f"./embeddings/{modelName}_log_{nameExtension}.txt", "w")
+        extractor.setLoggerFile(loggerFile)
+        embedding = extractor.extract(weatWordSentenceDict)
+        pickle.dump(
+            embedding,
+            open(f"./embeddings/embeddings_{modelName}_len_{nameExtension}.pkl", "wb"),
+        )
+        loggerFile.close()
+    else:
+        sentenceLengths = [9, 15, 25, 40, 60, 75, 100, 125, 150, 200]
+        for length in sentenceLengths:
+            random.seed(seed)
+            nameExtension = str(length)
+            processor.setLength(length)
+            loggerFile = open(f"./embeddings/{modelName}_log_{nameExtension}.txt", "w")
 
-    # short_sent_1 = processor.shortenSentence(sent1, "গোলাপ")[0]
-    # short_sent_2 = processor.shortenSentence(sent2, "গোলাপ")[0]
-    # short_sent_3 = processor.shortenSentence(sent3, "গোলাপ")[0]
-    # short_sent_4 = processor.shortenSentence(sent4, "গোলাপ")[0]
-    # short_sent_5 = processor.shortenSentence(sent5, "গোলাপ")[0]
+            extractor.setLoggerFile(loggerFile)
+            extractor.setMaxSentenceSample(1200)
+            extractor.setRandomSelect(True)
 
-    # print(short_sent_1, evaluator.getSpan(short_sent_1, "গোলাপ"))
-    # print(short_sent_2, evaluator.getSpan(short_sent_2, "গোলাপ"))
-    # print(short_sent_3, evaluator.getSpan(short_sent_3, "গোলাপ"))
-    # print(short_sent_4, evaluator.getSpan(short_sent_4, "গোলাপ"))
-    # print(short_sent_5, evaluator.getSpan(short_sent_5, "গোলাপ"))
+            embedding = extractor.extract(weatWordSentenceDict)
+            pickle.dump(
+                embedding,
+                open(
+                    f"./embeddings/embeddings_{modelName}_len_{nameExtension}.pkl", "wb"
+                ),
+            )
 
-    # print(processor.shortenSentence(sent1, "গোলাপ"))
-    # print(processor.shortenSentence(sent2, "গোলাপ"))
-    # print(processor.shortenSentence(sent3, "গোলাপ"))
-    # print(processor.shortenSentence(sent4, "গোলাপ"))
-    # print(processor.shortenSentence(sent5, "গোলাপ"))
+            loggerFile.close()
 
-    # print(re.sub("গোলাপ", "কাঠগোলাপ", sent4))
+    loggerFile = open(f"./embeddings/log_{nameExtension}.txt", "w")
+
+    # modelMurilBase = MLMEmbeddingExtractor(
+    #     model_name="google/muril-base-cased",
+    #     tokenizer_name="google/muril-base-cased",
+    # )
+    # modelMurilBase.setEmbeddingLayer(12)
+
+    # modelXLMRobertaBase = MLMEmbeddingExtractor(
+    #     model_name="xlm-roberta-base",
+    #     tokenizer_name="xlm-roberta-base",
+    # )
+    # modelXLMRobertaBase.setEmbeddingLayer(12)
