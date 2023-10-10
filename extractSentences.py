@@ -56,7 +56,7 @@ if __name__ == "__main__":
         print("Invalid argument")
         exit(1)
 
-    weatWordDict = json.load(open("weatWordsWithSuffix.jsonl", "r", encoding="utf-8"))
+    weatWordDict = json.load(open("traitWordsWithSuffix.jsonl", "r", encoding="utf-8"))
     weatWordDict = normalizeWeatDict(weatWordDict)
     weatWordList = list(weatWordDict.keys())
     evaluator = WordEvaluatorRegexSuffixFixed(weatWordDict)
@@ -87,7 +87,7 @@ if __name__ == "__main__":
         )
 
     if dir:
-        weatWordDF.to_csv("weatWordsSentences.csv", index=False)
+        weatWordDF.to_csv("traitWordsSentences.csv", index=False)
         sentencesDF.to_csv("sentences.csv", index=False)
     else:
         import os
@@ -95,9 +95,10 @@ if __name__ == "__main__":
         folderName = "_".join(
             [fileName.split("/")[-1].split(".")[0] for fileName in filesList]
         )
+        folderName = folderName + "_trait"
         print(folderName)
         os.makedirs("./" + folderName, exist_ok=True)
-        weatWordDF.to_csv(f"./{folderName}/weatWordsSentences.csv", index=False)
+        weatWordDF.to_csv(f"./{folderName}/traitWordsSentences.csv", index=False)
         sentencesDF.to_csv(f"./{folderName}/sentences.csv", index=False)
 
 
