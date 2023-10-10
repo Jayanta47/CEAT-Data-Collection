@@ -173,11 +173,12 @@ if __name__ == "__main__":
         "BanglaBert_Discriminator": "embeddings_bbdisc_len_%s.pkl",
         "Muril_Base": "embeddings_murilB_len_%s.pkl",
         "XLM_Roberta_Base": "embeddings_xlmRB_len_%s.pkl",
+        "XLM_Roberta_Large": "embeddings_XLM_Roberta_Large_len_%s.pkl",
     }
 
-    sentenceLengths = ["9", "25", "75", "all"]
-    seed = 32
-    nSample = 10
+    sentenceLengths = ["9", "15", "25", "40", "60", "75", "100", "125", "150", "200"]
+    seed = 48
+    nSample = 500
     np.random.seed(seed=seed)
     experimentType = "random"
     if len(sys.argv) >= 2 and sys.argv[1] == "-exp" and sys.argv[2] == "fixed":
@@ -186,7 +187,7 @@ if __name__ == "__main__":
     print(f"Experiment Type: {experimentType}")
 
     for model in embeddingsMapper:
-        print(f"Model In Use: {model}")
+        print(f"Model In Use: {model} Smaple Size: {nSample}")
         if experimentType == "fixed":
             np.random.seed(seed=seed)
 

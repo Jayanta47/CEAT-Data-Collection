@@ -182,7 +182,7 @@ if __name__ == "__main__":
             tokenizer_name="xlm-roberta-large",
         )
 
-    seed = 32
+    seed = 47
     random.seed(seed)
 
     extractor = EmbeddingExtractor(processor, model)
@@ -199,9 +199,11 @@ if __name__ == "__main__":
             open(f"./embeddings/embeddings_{modelName}_len_{nameExtension}.pkl", "wb"),
         )
         loggerFile.close()
-    else:
+    elif sentenceLength == -2:
+        print("Variable Length Run...")
         sentenceLengths = [9, 15, 25, 40, 60, 75, 100, 125, 150, 200]
         for length in sentenceLengths:
+            print(f"Length: {length}")
             random.seed(seed)
             nameExtension = str(length)
             processor.setLength(length)
@@ -220,8 +222,6 @@ if __name__ == "__main__":
             )
 
             loggerFile.close()
-
-    loggerFile = open(f"./embeddings/log_{nameExtension}.txt", "w")
 
     # modelMurilBase = MLMEmbeddingExtractor(
     #     model_name="google/muril-base-cased",
