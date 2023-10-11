@@ -65,12 +65,12 @@ def generate_results(weat_word_dict, dump_reuslts=True):
         weat_word_dict.keys(), key=lambda k: len(weat_word_dict[k]), reverse=True
     )
 
-    with open("results/results.txt", "w", encoding="utf-8") as file:
+    with open("results/results_trait.txt", "w", encoding="utf-8") as file:
         for key in sorted_keys:
             file.write(f"{key}: {len(weat_word_dict[key])}\n")
 
     if dump_reuslts:
-        pickle.dump(weat_word_dict, open("results/results.pkl", "wb"))
+        pickle.dump(weat_word_dict, open("results/results_trait.pkl", "wb"))
 
 
 def merge_same_words(
@@ -110,20 +110,7 @@ for folder in tqdm(folders_with_file, desc="Processing"):
     temp_word_sentence_dict = create_word_sentence_dict(sentences_file, weatWords_file)
     word_sentence_dict = merge_dictionaries(word_sentence_dict, temp_word_sentence_dict)
 
-same_words_dict = {
-    "উঁকুন": ["উকুন"],
-    "চলচ্চিত্র": ["চলচিত্র"],
-    "প্রাণিবিদ্যা": ["প্রাণীবিদ্যা"],
-    "তরবারি": ["তরবারী"],
-    "মাকড়সা": ["মাকড়শা"],
-    "বারুদ": ["গোলাবারুদ"],
-    "বেলি": ["বেলী"],
-    "উইপোকা": ["উঁইপোকা"],
-    "বীজগণিত": ["অ্যালজেবরা"],
-    "পিঁপড়া": ["পিঁপড়ে"],
-    "প্রাণিবিজ্ঞান": ["প্রাণীবিজ্ঞান"],
-}
-word_sentence_dict = merge_same_words(word_sentence_dict, same_words_dict)
+# word_sentence_dict = merge_same_words(word_sentence_dict, same_words_dict)
 generate_results(word_sentence_dict)
 
 # উঁকুন - উকুন
