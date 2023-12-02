@@ -1,4 +1,5 @@
 from extractCeatCategories import getCeatWords
+from ConfigurationVariables import *
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy.stats import norm
 import numpy as np
@@ -168,16 +169,10 @@ def writeDataValue(model, data, sentenceLengths, nSample):
 if __name__ == "__main__":
     categoryDefinition, ceatData = getCeatWords()
 
-    embeddingsMapper = {
-        "BanglaBert_Generator": "embeddings_len_%s.pkl",
-        "BanglaBert_Discriminator": "embeddings_bbdisc_len_%s.pkl",
-        "Muril_Base": "embeddings_murilB_len_%s.pkl",
-        "XLM_Roberta_Base": "embeddings_xlmRB_len_%s.pkl",
-        "XLM_Roberta_Large": "embeddings_XLM_Roberta_Large_len_%s.pkl",
-    }
+    embeddingsMapper = GetEmbeddingsFileMapping()
 
-    sentenceLengths = ["9", "15", "25", "40", "60", "75", "100", "125", "150", "200"]
-    seed = 48
+    sentenceLengths = GetOperationalSentenceLengths()
+    seed = 32
     nSample = 500
     np.random.seed(seed=seed)
     experimentType = "random"
@@ -225,51 +220,41 @@ if __name__ == "__main__":
             embeddingsDict = pickle.load(open(embeddingsFilePath, "rb"))
             print("Done Loading...")
             for testIndex, ceatGroup in enumerate(ceatData):
-                # print(categoryDefinition[testIndex]["Category Name"])
-                # print("target: ", categoryDefinition[testIndex]["target(s)"])
-                # print("attribute: ", categoryDefinition[testIndex]["attribute(s)"])
-
                 effectSizeArray, varianceArray = CEAT_DataGeneration(
                     ceatGroup,
                     embeddingsDict,
                     nSample=nSample,
                     model=model,
+                    save=False,
                 )
-                pes, p_value = CEAT_MetaAnalysis(
-                    effectSizeArray, varianceArray, nSample=nSample
+                print("Saving pickle files...")
+                print(
+                    f"Description: {categoryDefinition[testIndex]['Category Name']}, Length: {lenString}, Model: {model}"
                 )
+                pickle.dump(
+                    effectSizeArray,
+                    open(
+                        f"./es_{model}_{categoryDefinition[testIndex]['Category Name']}_{lenString}.pickle",
+                        "wb",
+                    ),
+                )
+                pickle.dump(
+                    varianceArray,
+                    open(
+                        f"./var_{model}_{categoryDefinition[testIndex]['Category Name']}_{lenString}.pickle",
+                        "wb",
+                    ),
+                )
+                # pes, p_value = CEAT_MetaAnalysis(
+                #     effectSizeArray, varianceArray, nSample=nSample
+                # )
 
-                # print(f"Combined Effect Size: {pes}")
-                # print(f"p-value: {p_value}")
-                data[categoryDefinition[testIndex]["Category Name"]][lenString] = {
-                    "CES": pes,
-                    "p": p_value,
-                }
+                # data[categoryDefinition[testIndex]["Category Name"]][lenString] = {
+                #     "CES": pes,
+                #     "p": p_value,
+                # }
 
-        # print(data)
-        print((("Writing To file...")))
-        writeDataValue(
-            model=model, data=data, sentenceLengths=availableLengths, nSample=nSample
-        )
-
-
-# def sample_statistics(X, Y, A, B, num=100):
-#     XY = np.concatenate((X, Y), axis=0)
-
-#     def inner_1(XY, A, B):
-#         X_test_idx = np.random.choice(XY.shape[0], X.shape[0], replace=False)
-#         Y_test_idx = np.setdiff1d(list(range(XY.shape[0])), X_test_idx)
-#         X_test = XY[X_test_idx, :]
-#         Y_test = XY[Y_test_idx, :]
-#         return difference(X_test, Y_test, A, B)
-
-#     s = [inner_1(XY, A, B) for i in range(num)]
-
-#     return np.mean(s), np.std(s, ddof=1)
-
-
-# def p_value(X, Y, A, B, num=100):
-#     m, s = sample_statistics(X, Y, A, B, num)
-#     d = difference(X, Y, A, B)
-#     p = 1 - scipy.stats.norm.cdf(d, loc=m, scale=s)
-#     return p
+        # print((("Writing To file...")))
+        # writeDataValue(
+        #     model=model, data=data, sentenceLengths=availableLengths, nSample=nSample
+        # )
